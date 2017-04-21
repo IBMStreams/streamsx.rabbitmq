@@ -63,12 +63,6 @@
 		</antcall>
 	</target>
 
-	<target name="kafka-0.9">
-		<property name="pom.file" value="pom-kafka-0.9.xml" />
-		<antcall target="toolkit">
-		</antcall>
-	</target>
-	
 	<target name="toolkit" depends="jar">
 		<echo message="Tookit to index: ${basedir}"/>
 		<exec executable="${spl-mt}">

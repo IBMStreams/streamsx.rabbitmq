@@ -4,7 +4,7 @@
 <comment>SPL Build Configuration: BuildConfig</comment>
 <entry key="com.ibm.streams.studio.splproject:STATIC_LINKING">F</entry>
 <entry key="com.ibm.streams.studio.splproject:OPTIMIZED_CODE">T</entry>
-<entry key="com.ibm.streams.studio.splproject:MAIN_COMPOSITE">com.ibm.streamsx.messaging.sample.rabbitmq::RabbitMQSample</entry>
+<entry key="com.ibm.streams.studio.splproject:MAIN_COMPOSITE">com.ibm.streamsx.rabbitmq.sample::RabbitMQSample</entry>
 <entry key="com.ibm.streams.studio.splproject:NAME">BuildConfig</entry>
 <entry key="com.ibm.streams.studio.splproject:GCC_OPTS"/>
 <entry key="com.ibm.streams.studio.splproject:SC_OPTS"/>

@@ -30,6 +30,7 @@ Alternatively, you can fully qualify the operators that are provided by toolkit 
 
 1. Review the list of restrictions for the InfoSphere Streams specialized toolkits in the product documentation.
 2. Verify that the appropriate environment variables are set for the messaging systems that you use.
+  * TODO: Define the variables or remove this step
 3. Configure the SPL compiler to find the toolkit root directory. Use one of the following methods:
   * Set the **STREAMS_SPLPATH** environment variable to the root directory of a toolkit or multiple toolkits (with : as a separator).
     For example:
@@ -53,6 +54,4 @@ Alternatively, you can fully qualify the operators that are provided by toolkit 
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
-  <info:resources>
-  </info:resources>
 </info:toolkitInfoModel>

@@ -3,7 +3,7 @@
  * All Rights Reserved
  *******************************************************************************/
 
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -31,7 +31,7 @@ import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.Libraries;
 import com.ibm.streams.operator.model.Parameter;
-import com.ibm.streamsx.messaging.common.PropertyProvider;
+import com.ibm.streamsx.rabbitmq.i18n.Messages;
 import com.rabbitmq.client.Address;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

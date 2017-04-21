@@ -1,9 +1,8 @@
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streams.operator.metrics.Metric;
 import com.rabbitmq.client.Recoverable;
 import com.rabbitmq.client.RecoveryListener;
 

@@ -1,9 +1,9 @@
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streams.operator.metrics.Metric;
+import com.ibm.streamsx.rabbitmq.i18n.Messages;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;

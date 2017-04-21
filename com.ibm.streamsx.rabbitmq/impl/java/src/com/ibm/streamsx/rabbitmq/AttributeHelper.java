@@ -2,7 +2,7 @@
  * Copyright (C) 2015, International Business Machines Corporation
  * All Rights Reserved
  *******************************************************************************/
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +16,7 @@ import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.types.Blob;
 import com.ibm.streams.operator.types.ValueFactory;
+import com.ibm.streamsx.rabbitmq.i18n.Messages;
 
 //Helper to check if attributes have been specified explicitly
 class AttributeHelper {

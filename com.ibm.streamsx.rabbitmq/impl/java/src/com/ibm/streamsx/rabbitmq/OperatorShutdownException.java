@@ -1,4 +1,4 @@
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 public class OperatorShutdownException extends Exception {
 

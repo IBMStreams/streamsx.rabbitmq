@@ -3,7 +3,7 @@
  * Copyright (C) 2015, MOHAMED-ALI SAID
  * All Rights Reserved
  *******************************************************************************/
-package com.ibm.streamsx.messaging.rabbitmq;
+package com.ibm.streamsx.rabbitmq;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,6 +29,7 @@ import com.ibm.streams.operator.model.OutputPorts;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
+import com.ibm.streamsx.rabbitmq.i18n.Messages;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.AMQP;
@@ -40,7 +41,7 @@ import java.util.logging.Logger;
 /**
  * This operator was originally contributed by Mohamed-Ali Said @saidmohamedali
  */
-@OutputPorts(@OutputPortSet(cardinality = 1, optional = false, description = "Messages received from Kafka are sent on this output port."))
+@OutputPorts(@OutputPortSet(cardinality = 1, optional = false, description = "Messages received are sent on this output port."))
 @PrimitiveOperator(name = "RabbitMQSource", description = RabbitMQSource.DESC)
 public class RabbitMQSource extends RabbitMQBaseOper {
 
