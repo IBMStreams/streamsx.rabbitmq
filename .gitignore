@@ -1,0 +1,49 @@
+# streams-specific excludes
+toolkit.xml
+impl/nl/include/*.h
+*.pm
+.toolkitList
+doc
+
+# If you want to include a perl module, do
+!Access.pm
+!Connection.pm
+!Edge.pm
+
+
+/com.ibm.streamsx.rabbitmq/doc/
+/com.ibm.streamsx.rabbitmq/.settings
+samples/*/output
+samples/*/toolkit.xml
+/samples/*/doc
+
+## java excludes
+*.class
+
+# exclude generated Java primitive operator model files
+*$StreamsModel.java
+
+# Package Files #
+com.ibm.streamsx.rabbitmq/lib/*.jar
+com.ibm.streamsx.rabbitmq/impl/lib/*.jar
+*.war
+*.ear
+
+## C++ excludes
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# temporary directories
+tmp
+/build.xml~
