@@ -2,7 +2,7 @@
 # others. All Rights Reserved.                        
 .PHONY: all clean
 
-TOOLKITS ?= ../../com.ibm.streamsx.rabbitmq:${STREAMS_INSTALL}/toolkits/com.ibm.streamsx.rabbitmq
+TOOLKITS ?= ../../com.ibm.streamsx.rabbitmq
 
 SPLC_FLAGS ?= -a -t ${TOOLKITS}
 
