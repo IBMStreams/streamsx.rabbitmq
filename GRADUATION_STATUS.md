@@ -6,16 +6,16 @@ Incubation for projects is covered here: https://github.com/IBMStreams/administr
 
 ## Status
 
-- [ ] :red_circle: Stable release(s)
-  * Status: No release yet
-- [ ] :red_circle: Project is properly documented
-  * Status: No
-- [ ] :red_circle: Project has samples and instructions to help users get started easily
-  * Status: No
+- [ ] :white_check_mark: Stable release(s)
+  * Status: Release v1.0.0 after split from streamsx.messaging toolkit
+- [ ] :large_orange_diamond: Project is properly documented
+  * Status: SPLDoc is generated, maybe add some more explanatory texts
+- [ ] :large_orange_diamond: Project has samples and instructions to help users get started easily
+  * Status: Project has one sample, needs some more explanatory texts
 - [ ] :red_circle: Sufficient testing
-  * Status: No, the operators are not tested yet on all Streams supported platform
+  * Status: There are no test suites in public GitHub. Streams' internal test suites cannot be made public yet.
 - [ ] :red_circle: Instructions on how to get started with development and contributing to project
-  * Status: No
+  * Status: Nothing special here. It is just a simple toolkit though.
 - [ ] :red_circle: Website that contains information and documentation of the project
   * Status: No
 - [ ] :red_circle: Clear release plan
