@@ -1,4 +1,4 @@
-#Tue Aug 29 08:38:49 CEST 2017
+#Wed Sep 06 15:33:48 CEST 2017
 copytosourcelist=
 hreftargetslist=dita/tk$com.ibm.streamsx.rabbitmq/op$com.ibm.streamsx.rabbitmq$RabbitMQSource.xml,dita/tk$com.ibm.streamsx.rabbitmq/tk$com.ibm.streamsx.rabbitmq.xml,dita/tk$com.ibm.streamsx.rabbitmq/tk$com.ibm.streamsx.rabbitmq$1.xml,dita/tk$com.ibm.streamsx.rabbitmq/ix$Namespace.xml,dita/toolkits/ix$Namespace.xml,dita/tk$com.ibm.streamsx.rabbitmq/ns$com.ibm.streamsx.rabbitmq.xml,dita/toolkits/ix$Operator.xml,dita/tk$com.ibm.streamsx.rabbitmq/op$com.ibm.streamsx.rabbitmq$RabbitMQSink.xml,dita/tk$com.ibm.streamsx.rabbitmq/ix$Operator.xml,dita/toolkits/toolkits.xml,dita/references/OperatorModel.xml
 fullditatopicfile=fullditatopic.list
@@ -37,7 +37,7 @@ codereffile=coderef.list
 keylist=
 codereflist=
 user.input.file.listfile=usr.input.file.list
-user.input.dir=/mnt/hgfs/share/git-ibm/streamsx.rabbitmq/com.ibm.streamsx.rabbitmq/doc/en_US/spldoc
+user.input.dir=/mnt/hgfs/share/git-public/streamsx.rabbitmq/com.ibm.streamsx.rabbitmq/doc/spldoc
 uplevels=../
 tempdirToinputmapdir.relative.value=dita/
 conrefpushfile=conrefpush.list
