@@ -12,28 +12,4 @@ sidebar:
 {% include editme %}
 
 
-Descripe on this page the general overview about the domain specific knowledge you want to explain further.
-Separate huge topics to own pages.
-
-## Knowledge Heading level 2
-
-
-**ProTip:** This is a Pro-Tip
-{: .notice--info}
-
-### Knowledge Heading level 3
-
-Some text
-
-Some shell command description
-
-```bash
-bundle install
-```
-
-### Knowledge Another level 3 Heading
-
-**Note:** This is a Notize.
-{: .notice--warning}
-
 

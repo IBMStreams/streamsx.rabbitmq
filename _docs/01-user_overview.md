@@ -12,31 +12,6 @@ sidebar:
 {%include editme %}
 
 
-Place here an overview about the functionality of the toolkit.
-Don't repeat work by explaining things which are available in SPLDOC.
-SPLDOC shall be linked in this page 
+## SPLDOC
 
-
-## Overview Sample header level 2
-
-Your text related to this topic 
-
-**ProTip:** This is a Pro-Tip
-{: .notice--info}
-
-### Overview Sample header level 3
-
-Some text in this level
-
-Some shell command description
-
-```bash
-bundle install
-```
-
-### Overview Another Sample header level 3 
-
-**Note:** This is a Notize.
-{: .notice--warning}
-
-
+[SPLDoc for the com.ibm.streamsx.rabbitmq toolkit](https://ibmstreams.github.io/streamsx.rabbitmq/doc/spldoc/html/tk$com.ibm.streamsx.rabbitmq/tk$com.ibm.streamsx.rabbitmq.html)
