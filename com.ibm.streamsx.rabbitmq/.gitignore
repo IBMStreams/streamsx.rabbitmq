@@ -1,8 +1,0 @@
-/output
-impl/lib
-com.ibm.streamsx.rabbitmq
-opt/downloaded
-/target
-/.externalToolBuilders
-/bin/
-/info.xml~
