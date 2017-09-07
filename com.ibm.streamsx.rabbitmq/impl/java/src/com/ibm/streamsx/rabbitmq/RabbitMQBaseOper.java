@@ -123,54 +123,54 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	}
 	
 	@Parameter(name=KEYSTORE_ALGORITHM_PARAM_NAME, optional = true,
-			description="Specifies the algorithm that was used to encrypt the keystore. If not specified, the operator "
+			description="Specifies the algorithm that was used to encrypt the keyStore. If not specified, the operator "
 					+ "will use the JVM's default algorithm (typically `IbmX509`).")
 	public void setKeyStoreAlgorithm(String keyStoreAlgorithm) {
 		this.keyStoreAlgorithm = keyStoreAlgorithm;
 	}
 
 	@Parameter(name=KEYSTORE_PASSWORD_PARAM_NAME, optional = true,
-			description="Specifies the password used to unlock the keystore.")
+			description="Specifies the password used to unlock the keyStore.")
 	public void setKeyStorePassword(String keyStorePassword) {
 		this.keyStorePassword = keyStorePassword;
 	}
 
 	@Parameter(name=KEYSTORE_PATH_PARAM_NAME, optional = true,
-			description="Specifies the path to the keystore file. This parameter is required if the **useSSL** "
+			description="Specifies the path to the keyStore file. This parameter is required if the **useSSL** "
 					+ "parameter is set to `true`.")
 	public void setKeyStorePath(String keyStorePath) {
 		this.keyStorePath = keyStorePath;
 	}
 	
 	@Parameter(name=KEYSTORE_TYPE_PARAM_NAME, optional = true,
-			description="Specifies the keystore type. If not specified, the operator will use "
+			description="Specifies the keyStore type. If not specified, the operator will use "
 					+ "the JVM's default type (typically `JKS`).")
 	public void setKeyStoreType(String keyStoreType) {
 		this.keyStoreType = keyStoreType;
 	}
 
 	@Parameter(name=TRUSTSTORE_ALGORITHM_PARAM_NAME, optional = true,
-			description="Specifies the algorithm that was used to encrypt the truststore. If not specified, the operator "
+			description="Specifies the algorithm that was used to encrypt the trustStore. If not specified, the operator "
 					+ "will use the JVM's default algorithm (typically `IbmX509`).")
 	public void setTrustStoreAlgorithm(String trustStoreAlgorithm) {
 		this.trustStoreAlgorithm = trustStoreAlgorithm;
 	}
 	
 	@Parameter(name=TRUSTSTORE_PASSWORD_PARAM_NAME, optional = true,
-			description="Specifies the password used to unlock the truststore.")
+			description="Specifies the password used to unlock the trustStore.")
 	public void setTrustStorePassword(String trustStorePassword) {
 		this.trustStorePassword = trustStorePassword;
 	}
 	
 	@Parameter(name=TRUSTSTORE_PATH_PARAM_NAME, optional = true,
-			description="Specifies the path to the truststore file. This parameter is required if the **useSSL** "
+			description="Specifies the path to the trustStore file. This parameter is required if the **useSSL** "
 					+ "parameter is set to `true`.")
 	public void setTrustStorePath(String trustStorePath) {
 		this.trustStorePath = trustStorePath;
 	}
 	
 	@Parameter(name=TRUSTSTORE_TYPE_PARAM_NAME, optional = true,
-			description="Specifies the truststore type. If not specified, the operator will use "
+			description="Specifies the trustStore type. If not specified, the operator will use "
 					+ "the JVM's default type (typically `JKS`).")
 	public void setTrustStoreType(String trustStoreType) {
 		this.trustStoreType = trustStoreType;
@@ -189,15 +189,15 @@ public class RabbitMQBaseOper extends AbstractOperator {
 				// SSL connection is requried, ensure that the path to the 
 				// keystore and truststore are specified
 				if(!paramNames.contains(KEYSTORE_PATH_PARAM_NAME)) {
-					checker.setInvalidContext(Messages.getString("MISSING_STORE_PATH", KEYSTORE_PATH_PARAM_NAME), new Object[0]);
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", KEYSTORE_PATH_PARAM_NAME), new Object[0]);
 				}
 				
 				if(!paramNames.contains(KEYSTORE_PASSWORD_PARAM_NAME)) {
-					checker.setInvalidContext(Messages.getString("MISSING_KEYSTORE_PASSWORD", KEYSTORE_PASSWORD_PARAM_NAME), new Object[0]);
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", KEYSTORE_PASSWORD_PARAM_NAME), new Object[0]);
 				}
 				
 				if(!paramNames.contains(TRUSTSTORE_PATH_PARAM_NAME)) {
-					checker.setInvalidContext(Messages.getString("MISSING_STORE_PATH", TRUSTSTORE_PATH_PARAM_NAME), new Object[0]);
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", TRUSTSTORE_PATH_PARAM_NAME), new Object[0]);
 				}				
 			}
 		}
