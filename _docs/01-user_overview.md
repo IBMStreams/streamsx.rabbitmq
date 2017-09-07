@@ -14,4 +14,4 @@ sidebar:
 
 ## SPLDOC
 
-[SPLDoc for the com.ibm.streamsx.rabbitmq toolkit](https://ibmstreams.github.io/streamsx.rabbitmq/doc/spldoc/html/tk$com.ibm.streamsx.rabbitmq/tk$com.ibm.streamsx.rabbitmq.html)
+[SPLDoc for the com.ibm.streamsx.rabbitmq toolkit](https://ibmstreams.github.io/streamsx.rabbitmq/doc/spldoc/html/index.html)
