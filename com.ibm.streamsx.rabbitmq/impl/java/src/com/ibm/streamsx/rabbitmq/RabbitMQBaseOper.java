@@ -294,7 +294,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	 * Setup connection and channel. If automatic recovery is enabled, we will reattempt 
 	 * to connect every networkRecoveryInterval
 	 */
-	public void initializeRabbitChannelAndConnection() throws IOException, TimeoutException, MalformedURLException, URISyntaxException, NoSuchAlgorithmException,
+	public void initializeRabbitChannelAndConnection() throws MalformedURLException, URISyntaxException, NoSuchAlgorithmException,
 			KeyManagementException, IOException, TimeoutException, InterruptedException, OperatorShutdownException, FailedToConnectToRabbitMQException, Exception {
 		do {
 			try {
