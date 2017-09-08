@@ -11,4 +11,10 @@ sidebar:
 {% include toc %}
 {% include editme %}
 
+# Build the toolkit
+
+The toolkit needs to be build before you can use it in a SPL application.
+Run the following command in the `streamsx.rabbitmq` directory:
+
+    ant all
 
