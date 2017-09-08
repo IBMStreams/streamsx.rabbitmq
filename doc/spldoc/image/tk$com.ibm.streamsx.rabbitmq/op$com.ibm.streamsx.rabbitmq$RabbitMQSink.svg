@@ -43,19 +43,25 @@
       ><set attributeName="visibility" from="hidden" end="sdt0.mouseout" to="visible" begin="sdt0.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
-    ><rect x="47.65" y="13.0" width="435.53998" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="92.0"
-      /><text x="48.65" y="26.0"
+    ><rect x="47.65" y="-32.0" width="437.65997" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="137.0"
+      /><text x="48.65" y="-19.0"
       >Optional: URI, appConfigName, automaticRecovery, </text
-      ><text x="48.65" y="41.0"
+      ><text x="48.65" y="-4.0"
       >deliveryMode, exchangeName, exchangeType, hostAndPort, </text
+      ><text x="48.65" y="11.0"
+      >keyStoreAlgorithm, keyStorePassword, keyStorePath, </text
+      ><text x="48.65" y="26.0"
+      >keyStoreType, maxMessageSendRetries, messageAttribute, </text
+      ><text x="48.65" y="41.0"
+      >messageSendRetryDelay, msgHeaderAttribute, password, </text
       ><text x="48.65" y="56.0"
-      >maxMessageSendRetries, messageAttribute, messageSendRetryDelay, </text
+      >passwordPropName, routingKeyAttribute, setNetworkRecoveryInterval, </text
       ><text x="48.65" y="71.0"
-      >msgHeaderAttribute, password, passwordPropName, </text
+      >sslProtocol, trustStoreAlgorithm, trustStorePassword, </text
       ><text x="48.65" y="86.0"
-      >routingKeyAttribute, setNetworkRecoveryInterval, </text
+      >trustStorePath, trustStoreType, useSSL, userPropName, </text
       ><text x="48.65" y="101.0"
-      >userPropName, username, virtualHost</text
+      >username, virtualHost</text
       ><set attributeName="visibility" from="hidden" end="sdt1.mouseout" to="visible" begin="sdt1.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
