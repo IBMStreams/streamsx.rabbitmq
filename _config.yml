@@ -16,6 +16,8 @@ baseurl                  : "/streamsx.rabbitmq" # the subpath of your site, e.g.
 repository               : "IBMStreams/streamsx.rabbitmq" # GitHub username/repo-name
 github_base_url          : "https://github.com" # your github server, will differ when enterprise github
 github_editme_path       : https://github.com/IBMStreams/streamsx.rabbitmq/blob/gh-pages
+spldoc_path              : &default_cta_url "/doc/spldoc/html"
+toolkit_excerpt          : &default_excerpt "This is a short excert about the toolkit"
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 # breadcrumbs            : false # true, false (default)
 words_per_minute         : 200
@@ -190,6 +192,10 @@ defaults:
     values:
       layout: single
       author_profile: true
+      header:
+        cta_url: *default_cta_url
+        cta_label: "SPLDOC"
+      excerpt: *default_excerpt
   # _docs
   - scope:
       path: ""
