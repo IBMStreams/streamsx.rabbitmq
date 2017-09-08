@@ -5,11 +5,13 @@
 
 package com.ibm.streamsx.rabbitmq;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,10 +21,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
-import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.OperatorContext.ContextCheck;
+import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.LogLevel;
@@ -41,6 +47,25 @@ import com.rabbitmq.client.Recoverable;
 @Libraries({ "opt/downloaded/*"/*, "@RABBITMQ_HOME@" */})
 public class RabbitMQBaseOper extends AbstractOperator {
 
+	private static final Boolean SSL_USE_SSL_DEFAULT = Boolean.FALSE;
+	private static final String SSL_KEYSTORE_TYPE_DEFAULT = KeyStore.getDefaultType();
+	private static final String SSL_KEYSTORE_ALGORITHM_DEFAULT = KeyManagerFactory.getDefaultAlgorithm();
+	private static final String SSL_TRUSTSTORE_TYPE_DEFAULT = KeyStore.getDefaultType();
+	private static final String SSL_TRUSTSTORE_ALGORITHM_DEFAULT = KeyManagerFactory.getDefaultAlgorithm();
+	private static final String SSL_PROTOCOL_DEFAULT = "TLSv1.2";
+	
+	private static final String USE_SSL_PARAM_NAME = "useSSL";
+	private static final String SSL_PROTOCOL_PARAM_NAME = "sslProtocol";
+	private static final String KEYSTORE_TYPE_PARAM_NAME = "keyStoreType";
+	private static final String KEYSTORE_ALGORITHM_PARAM_NAME = "keyStoreAlgorithm";
+	private static final String KEYSTORE_PATH_PARAM_NAME = "keyStorePath";
+	private static final String KEYSTORE_PASSWORD_PARAM_NAME = "keyStorePassword";
+	private static final String TRUSTSTORE_TYPE_PARAM_NAME = "trustStoreType";
+	private static final String TRUSTSTORE_ALGORITHM_PARAM_NAME = "trustStoreAlgorithm";
+	private static final String TRUSTSTORE_PATH_PARAM_NAME = "trustStorePath";
+	private static final String TRUSTSTORE_PASSWORD_PARAM_NAME = "trustStorePassword";
+	
+	
 	protected Channel channel;
 	protected Connection connection;
 	protected String username = "", //$NON-NLS-1$
@@ -70,6 +95,113 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	private String userPropName;
 	private String passwordPropName;
 	
+	/* SSL Parameters */
+	private Boolean useSSL = SSL_USE_SSL_DEFAULT;
+	private String sslProtocol = SSL_PROTOCOL_DEFAULT;
+	
+	private String keyStoreType = SSL_KEYSTORE_TYPE_DEFAULT;
+	private String keyStoreAlgorithm = SSL_KEYSTORE_ALGORITHM_DEFAULT;
+	private String keyStorePath;
+	private String keyStorePassword;
+	
+	private String trustStoreType = SSL_TRUSTSTORE_TYPE_DEFAULT;
+	private String trustStoreAlgorithm = SSL_TRUSTSTORE_ALGORITHM_DEFAULT;
+	private String trustStorePath;
+	private String trustStorePassword;
+	
+
+	@Parameter(name=SSL_PROTOCOL_PARAM_NAME, optional = true, 
+			description="Specifies the SSL protocol to use. If not specified, the default value is \\\"TLSv1.2\\\".")
+	public void setSslProtocol(String sslProtocol) {
+		this.sslProtocol = sslProtocol;
+	}
+	
+	@Parameter(name=USE_SSL_PARAM_NAME, optional = true, 
+			description="Specifies whether an SSL connection should be created. If not specified, the default value is `false`.")
+	public void setUseSSL(Boolean useSSL) {
+		this.useSSL = useSSL;
+	}
+	
+	@Parameter(name=KEYSTORE_ALGORITHM_PARAM_NAME, optional = true,
+			description="Specifies the algorithm that was used to encrypt the keyStore. If not specified, the operator "
+					+ "will use the JVM's default algorithm (typically `IbmX509`).")
+	public void setKeyStoreAlgorithm(String keyStoreAlgorithm) {
+		this.keyStoreAlgorithm = keyStoreAlgorithm;
+	}
+
+	@Parameter(name=KEYSTORE_PASSWORD_PARAM_NAME, optional = true,
+			description="Specifies the password used to unlock the keyStore.")
+	public void setKeyStorePassword(String keyStorePassword) {
+		this.keyStorePassword = keyStorePassword;
+	}
+
+	@Parameter(name=KEYSTORE_PATH_PARAM_NAME, optional = true,
+			description="Specifies the path to the keyStore file. This parameter is required if the **useSSL** "
+					+ "parameter is set to `true`.")
+	public void setKeyStorePath(String keyStorePath) {
+		this.keyStorePath = keyStorePath;
+	}
+	
+	@Parameter(name=KEYSTORE_TYPE_PARAM_NAME, optional = true,
+			description="Specifies the keyStore type. If not specified, the operator will use "
+					+ "the JVM's default type (typically `JKS`).")
+	public void setKeyStoreType(String keyStoreType) {
+		this.keyStoreType = keyStoreType;
+	}
+
+	@Parameter(name=TRUSTSTORE_ALGORITHM_PARAM_NAME, optional = true,
+			description="Specifies the algorithm that was used to encrypt the trustStore. If not specified, the operator "
+					+ "will use the JVM's default algorithm (typically `IbmX509`).")
+	public void setTrustStoreAlgorithm(String trustStoreAlgorithm) {
+		this.trustStoreAlgorithm = trustStoreAlgorithm;
+	}
+	
+	@Parameter(name=TRUSTSTORE_PASSWORD_PARAM_NAME, optional = true,
+			description="Specifies the password used to unlock the trustStore.")
+	public void setTrustStorePassword(String trustStorePassword) {
+		this.trustStorePassword = trustStorePassword;
+	}
+	
+	@Parameter(name=TRUSTSTORE_PATH_PARAM_NAME, optional = true,
+			description="Specifies the path to the trustStore file. This parameter is required if the **useSSL** "
+					+ "parameter is set to `true`.")
+	public void setTrustStorePath(String trustStorePath) {
+		this.trustStorePath = trustStorePath;
+	}
+	
+	@Parameter(name=TRUSTSTORE_TYPE_PARAM_NAME, optional = true,
+			description="Specifies the trustStore type. If not specified, the operator will use "
+					+ "the JVM's default type (typically `JKS`).")
+	public void setTrustStoreType(String trustStoreType) {
+		this.trustStoreType = trustStoreType;
+	}
+	
+	
+	/*
+	 * Check that the necessary SSL parameters are specified when an SSL connection is required
+	 */
+	@ContextCheck(compile = false, runtime = true)
+	public static void checkSSLParameters(OperatorContextChecker checker) {
+		Set<String> paramNames = checker.getOperatorContext().getParameterNames();
+		if(paramNames.contains(USE_SSL_PARAM_NAME)) {
+			List<String> useSSLValue = checker.getOperatorContext().getParameterValues(USE_SSL_PARAM_NAME);
+			if(useSSLValue.get(0).equals("true")) {
+				// SSL connection is requried, ensure that the path to the 
+				// keystore and truststore are specified
+				if(!paramNames.contains(KEYSTORE_PATH_PARAM_NAME)) {
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", KEYSTORE_PATH_PARAM_NAME), new Object[0]);
+				}
+				
+				if(!paramNames.contains(KEYSTORE_PASSWORD_PARAM_NAME)) {
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", KEYSTORE_PASSWORD_PARAM_NAME), new Object[0]);
+				}
+				
+				if(!paramNames.contains(TRUSTSTORE_PATH_PARAM_NAME)) {
+					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", TRUSTSTORE_PATH_PARAM_NAME), new Object[0]);
+				}				
+			}
+		}
+	}
 	
 	/*
 	 * The method checkParametersRuntime validates that the reconnection policy
@@ -163,7 +295,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	 * to connect every networkRecoveryInterval
 	 */
 	public void initializeRabbitChannelAndConnection() throws MalformedURLException, URISyntaxException, NoSuchAlgorithmException,
-			KeyManagementException, IOException, TimeoutException, InterruptedException, OperatorShutdownException, FailedToConnectToRabbitMQException {
+			KeyManagementException, IOException, TimeoutException, InterruptedException, OperatorShutdownException, FailedToConnectToRabbitMQException, Exception {
 		do {
 			try {
 				ConnectionFactory connectionFactory = setupConnectionFactory();
@@ -199,12 +331,17 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	}
 
 	private ConnectionFactory setupConnectionFactory()
-			throws MalformedURLException, URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
+			throws Exception {
 		ConnectionFactory connectionFactory = new ConnectionFactory();
 		connectionFactory.setExceptionHandler(new RabbitMQConnectionExceptionHandler(isConnected));
 		connectionFactory.setAutomaticRecoveryEnabled(autoRecovery);
+				
 		if (autoRecovery){
 			connectionFactory.setNetworkRecoveryInterval(networkRecoveryInterval);
+		}
+		
+		if(useSSL) {
+			connectionFactory.useSslProtocol(createSSLContext());
 		}
 		
 		if (URI.isEmpty()){
@@ -223,6 +360,27 @@ public class RabbitMQBaseOper extends AbstractOperator {
 			connectionFactory.setUri(URI);
 		}
 		return connectionFactory;
+	}
+
+	private SSLContext createSSLContext() throws Exception {
+		char[] keyStorePasswordCharArray = keyStorePassword.toCharArray();
+		KeyStore ks = KeyStore.getInstance(keyStoreType);
+		ks.load(new FileInputStream(keyStorePath), keyStorePasswordCharArray);
+		
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(keyStoreAlgorithm);
+		kmf.init(ks, keyStorePasswordCharArray);
+		
+		char[] trustStorePasswordCharArray = trustStorePassword != null ? trustStorePassword.toCharArray() : null;
+		KeyStore tks = KeyStore.getInstance(trustStoreType);
+		tks.load(new FileInputStream(trustStorePath), trustStorePasswordCharArray);
+		
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(trustStoreAlgorithm);
+		tmf.init(tks);
+		
+		SSLContext c = SSLContext.getInstance(sslProtocol);
+		c.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+		
+		return c;
 	}
 
 	/*

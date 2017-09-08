@@ -32,7 +32,7 @@ SPLC_FLAGS += -t $(SPL_PATH)
 SPLC = $(STREAMS_INSTALL)/bin/sc
 
 SPL_CMD_ARGS ?=
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.rabbitmq.sample::RabbitMQSample
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.rabbitmq.sample::RabbitMQSSLSample
 
 
 all:
