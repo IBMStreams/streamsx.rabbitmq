@@ -49,9 +49,9 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 	
 	private final Logger trace = Logger.getLogger(RabbitMQSource.class
 			.getCanonicalName());
-	
-	private Thread processThread;
-	private String queueName = ""; //$NON-NLS-1$
+
+	Thread processThread;
+	protected String queueName = ""; //$NON-NLS-1$
 
 	private String queueNameParameter = ""; //$NON-NLS-1$
 	
@@ -115,7 +115,7 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 		
 	}
 
-	private void bindAndSetupQueue() throws IOException {
+	void bindAndSetupQueue() throws IOException {
 		
 		boolean createdQueue = initializeQueue(connection);
 		

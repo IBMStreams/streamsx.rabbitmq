@@ -4,7 +4,8 @@ import com.ibm.streams.operator.metrics.Metric;
 
 public class SynchronizedConnectionMetric {
 	Metric isConnected;
-	Metric reconnectionAttempts;
+        Metric reconnectionAttempts;
+	Metric lostCorrelationIds;
 	
 	public void setReconnectionAttempts(Metric reconnectionAttempts) {
 		this.reconnectionAttempts = reconnectionAttempts;
@@ -16,6 +17,15 @@ public class SynchronizedConnectionMetric {
 
 	public long getValue() {
 		return isConnected.getValue();
+	}
+	
+	// TODO * value must be set before this is called.
+	public void setLostCorrelationIds(Metric lostCorrelationIds) {
+		this.lostCorrelationIds = lostCorrelationIds;
+	}
+	
+	public void lostCorrelationIdIncrement() {
+		lostCorrelationIds.increment();
 	}
 
 	public void setValue(long value) {
