@@ -1,0 +1,254 @@
+namespace com.ibm.streamsx.rabbitmq.sample;
+
+use com.ibm.streamsx.json::JSONToTuple ;
+use com.ibm.streamsx.json::TupleToJSON ;
+use com.ibm.streamsx.rabbitmq::RabbitMQRequestProcess ;
+
+
+
+composite RabbitMQRestServer
+{
+			//hostAndPort : "192.168.42.80:5672" ;
+			//hostAndPort :"9.108.82.149:5672" ;
+			//hostAndPort : "9.108.94.171:5672" ;
+			//hostAndPort : "192.168.8.112:5672";
+			//hostAndPort : "192.168.42.66:5672";
+			//hostAndPort : "169.254.151.37:5672";
+	param expression<rstring> $username : "my_user";
+	  expression<rstring> $password : "my_pass";
+	  expression<rstring> $hostport : "9.108.82.26:5672" ;
+	type
+	// Call out the header elements that you want explicitly.
+		HeaderType = rstring Accept, rstring Connection, rstring User_Agent,
+			rstring sndHead1, rstring sndHead2, rstring genHead1, rstring genHead2 ;
+		RPCtype = rstring message, rstring correlationId, rstring routing_key,
+			HeaderType headers ;
+		REQtype = rstring request, int32 sequenceNumber, rstring timeString, int32 sessionId,
+			rstring contextPath, rstring pathInfo, rstring method ;
+		RSPtype = map<rstring, rstring> response ;
+		MarshalType = tuple<map<rstring, rstring> response, int32 sequenceNumber, rstring timeString,
+			rstring contextPath, rstring pathInfo, rstring method, HeaderType headers> ;
+		RPCout = rstring correlationId, MarshalType marshal ;
+		ALLtype = RPCtype, REQtype, RSPtype ;
+	graph
+
+		(stream<RPCtype> RabbitMQRequestProcessTest_out0) as
+			RabbitMQRequestProcessTest = RabbitMQRequestProcess(TupleToJSON_5_out0)
+		{
+			param
+
+			hostAndPort : $hostport;			
+			username: $username;
+			password: $password;
+
+				
+				exchangeName : "" ;
+				//queueName : "SmokeTest" ;
+				queueName: "rpc_queue";
+		}
+
+		() as FileSink_3 = FileSink(JSONToTuple_4_out0 as inputStream)
+		{
+			param
+				file : "/dev/stdout" ;
+				flush : 1u ;
+		}
+
+		(stream<ALLtype> JSONToTuple_4_out0) as JSONToTuple_4 =
+			JSONToTuple(RabbitMQRequestProcessTest_out0)
+		{
+			param
+				jsonStringAttribute : "message" ;
+		}
+
+		(stream<IO> Filter_8_out0 ; stream<IO> Filter_8_out1) as FillFilter =
+			Filter(MirrorFilter_out1, Custom_15_out0 as IO)
+		{
+			param
+				filter : getCount(IO.request, 'fill') != - 1 ;
+		}
+
+		(stream<IO> Custom_6_out0 as O) as Fill = Custom(Filter_8_out0 as IO)
+		{
+			logic
+				state :
+				{
+					mutable ALLtype rpc ;
+					mutable rstring fillBuffer ;
+					mutable int32 fillCount ;
+				}
+
+				onTuple IO :
+				{
+					assignFrom(rpc, IO) ;
+					fillCount = getCount(IO.request, "fill") ;
+					fillBuffer = "" ;
+					for(int32 idx in range(fillCount))
+					{
+						fillBuffer += "A" ;
+					}
+
+					rpc.response = insert(IO.response, 'fill', fillBuffer) ;
+					submit(rpc, O) ;
+				}
+
+		}
+
+		(stream<IO> Filter_9_out0 ; stream<IO> SleepFilter_out1) as SleepFilter =
+			Filter(Filter_8_out1, Custom_6_out0 as IO)
+		{
+			param
+				filter : getCount(IO.request, 'sleep') != - 1 ;
+		}
+
+		(stream<IO> Custom_7_out0 as O) as Sleep = Custom(Filter_9_out0 as IO)
+		{
+			logic
+				state :
+				{
+					mutable ALLtype rpc ;
+					mutable float64 blockSeconds ;
+				}
+
+				onTuple IO :
+				{
+					assignFrom(rpc, IO) ;
+					blockSeconds =(float64) getCount(IO.request, "sleep") ;
+					block(blockSeconds) ;
+					rpc.response = insert(IO.response, "block",(rstring) blockSeconds) ;
+					submit(rpc, O) ;
+				}
+
+		}
+
+		(stream<IO> Filter_10_out0 ; stream<IO> Filter_10_out1) as DupFilter =
+			Filter(Custom_7_out0, SleepFilter_out1 as IO)
+		{
+			param
+				filter : getCount(IO.request, 'dup') != - 1 ;
+		}
+
+		(stream<IO> Custom_11_out0 as O) as Duplicate = Custom(Filter_10_out0 as IO)
+		{
+			logic
+				state :
+				{
+					mutable ALLtype rpc ;
+					mutable int32 dupCount ;
+				}
+
+				onTuple IO :
+				{
+					dupCount = getCount(IO.request, "dup") ;
+					assignFrom(rpc, IO) ;
+					rpc.response = insert(IO.response, "dup", "zero") ;
+					submit(rpc, O) ;
+					for(int32 idx in range(dupCount))
+					{
+						rpc.response = insert(IO.response, "dup",(rstring) idx) ;
+						submit(rpc, O) ;
+					}
+
+				}
+
+		}
+
+		(stream<IO> Filter_12_out0 ; stream<IO> HeaderFilter_out1) as HeaderFilter =
+			Filter(Custom_11_out0, Filter_10_out1 as IO)
+		{
+			param
+				filter : getCount(IO.request, 'head') != - 1 ;
+		}
+
+		(stream<IO> HeaderProcess_out0 as O) as HeaderProcess = Custom(Filter_12_out0
+			as IO)
+		{
+			logic
+				state :
+				{
+					mutable IO rpc ;
+					mutable int32 headCommand ;
+				}
+
+				onTuple IO :
+				{
+					headCommand = getCount(IO.request, "head") ;
+					assignFrom(rpc, IO) ;
+					rpc.response = insert(IO.response, "dup", "zero") ;
+					if(headCommand == 1)
+					{
+						rpc.headers.genHead1 =(rstring) rpc.headers.sndHead1 ;
+					}
+
+					submit(rpc, O) ;
+				}
+
+		}
+
+		(stream<RPCout> Custom_7_out1 as O) as Marshal = Custom(HeaderProcess_out0,
+			HeaderFilter_out1 as IO)
+		{
+			logic
+				state : mutable RPCout rpcOut ;
+				onTuple IO :
+				{
+					assignFrom(rpcOut, IO) ;
+					rpcOut.marshal.response = IO.response ;
+					rpcOut.marshal.sequenceNumber = IO.sequenceNumber ;
+					rpcOut.marshal.timeString = IO.timeString ;					
+					rpcOut.marshal.method = IO.method ;
+					rpcOut.marshal.contextPath = IO.contextPath ;
+					rpcOut.marshal.pathInfo = IO.pathInfo ;
+					assignFrom(rpcOut.marshal.headers, IO.headers) ;
+					submit(rpcOut, O) ;
+				}
+
+		}
+
+		(stream<ALLtype> TupleToJSON_5_out0) as TupleToJSON_5 =
+			TupleToJSON(Custom_7_out1 as inPort0Alias)
+		{
+			param
+				jsonStringAttribute : "message" ;
+				inputAttribute : marshal ;
+		}
+		/** 
+		 * Reflect back parameters that were from requestor. 
+		 */
+		(stream<IO> Filter_14_out0 ; stream<IO> MirrorFilter_out1) as MirrorFilter =
+			Filter(JSONToTuple_4_out0 as IO)
+		{
+			param
+				filter : getCount(IO.request, 'mirror') != - 1 ;
+		}
+
+		(stream<IO> Custom_15_out0 as O) as Mirror = Custom(Filter_14_out0 as IO)
+		{
+			logic 
+				state : mutable ALLtype rpcOut ; 
+			onTuple IO :
+			{ 
+				assignFrom(rpcOut , IO ) ;
+				
+				rpcOut.response = insert(IO.response, 'method', IO.method); 
+				rpcOut.response = insert(rpcOut.response, 'request', IO.request); 				
+				rpcOut.response = insert(rpcOut.response, 'contextPath', IO.contextPath); 								
+				rpcOut.response = insert(rpcOut.response, 'pathInfo', IO.pathInfo); 												
+				rpcOut.response = insert(rpcOut.response, 'sequenceNumber', (rstring)IO.sequenceNumber); 																
+				rpcOut.response = insert(rpcOut.response, 'timeString', (rstring)IO.timeString); 																				
+				submit(rpcOut , O );
+			}
+		} 
+	}
+
+
+
+
+
+
+
+
+
+
+
+
