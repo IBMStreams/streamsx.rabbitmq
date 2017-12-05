@@ -92,7 +92,6 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	
 	protected SynchronizedConnectionMetric isConnected;
 	private Metric reconnectionAttempts;
-	private Metric lostCorrelationIds;
 	private String appConfigName = ""; //$NON-NLS-1$
 	private String userPropName;
 	private String passwordPropName;
@@ -643,13 +642,13 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	public void setReconnectionAttempts(Metric reconnectionAttempts) {
 		this.reconnectionAttempts = reconnectionAttempts;
 	}
-	
+	/*
 	@CustomMetric(name = "lostCorrelationIds", kind = Metric.Kind.COUNTER,
 		    description = "The number of times a corrleation key was not found.")
 	public void setLostCorrelationIds(Metric lostCorrelationIds) {
 		this.lostCorrelationIds = lostCorrelationIds;
 	}	
-	
+	*/
 	
 	public static final String BASE_DESC = 
  "\\n\\n**AppConfig**: " //$NON-NLS-1$
