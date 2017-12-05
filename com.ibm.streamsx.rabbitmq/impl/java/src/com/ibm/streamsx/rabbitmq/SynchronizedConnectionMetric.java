@@ -19,15 +19,7 @@ public class SynchronizedConnectionMetric {
 		return isConnected.getValue();
 	}
 	
-	// TODO * value must be set before this is called.
-	public void setLostCorrelationIds(Metric lostCorrelationIds) {
-		this.lostCorrelationIds = lostCorrelationIds;
-	}
 	
-	public void lostCorrelationIdIncrement() {
-		lostCorrelationIds.increment();
-	}
-
 	public void setValue(long value) {
 		synchronized(isConnected){
 			isConnected.setValue(value);

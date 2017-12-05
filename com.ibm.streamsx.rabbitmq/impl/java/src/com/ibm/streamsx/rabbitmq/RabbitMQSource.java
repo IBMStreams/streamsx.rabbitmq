@@ -216,7 +216,7 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 				}
 				StreamingOutput<OutputTuple> out = getOutput(0);
 				OutputTuple tuple = out.newTuple();
-
+				trace.log(TraceLevel.DEBUG, "handleDeliver:" + body);				
 				messageAH.setValue(tuple, body);
 				
 				if (routingKeyAH.isAvailable()) {

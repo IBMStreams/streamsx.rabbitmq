@@ -16,6 +16,8 @@ import com.ibm.streams.operator.StreamingInput;
 import com.ibm.streams.operator.StreamingOutput;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.metrics.Metric;
+import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.InputPortSet;
 import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
@@ -24,6 +26,7 @@ import com.ibm.streams.operator.model.OutputPortSet;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 import com.ibm.streams.operator.model.OutputPorts;
 import com.ibm.streams.operator.model.PrimitiveOperator;
+import com.ibm.streamsx.rabbitmq.i18n.Messages;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.DefaultConsumer;
@@ -59,6 +62,8 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 	ConcurrentHashMap<String, String> correlationQueue = null;
 	// TODO * move in from Sink should this be moved up to ...BaseOper
 	Integer deliveryMode = 1;
+	private Metric lostCorrelationIds;
+	
 	int maxMessageSendRetries = 0;
 	int messageSendRetryDelay = 10000;
 
@@ -80,6 +85,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				+ " in Job: " + context.getPE().getJobId()); //$NON-NLS-1$
 
 		// produce tuples returns immediately, but we don't want ports to close
+		System.out.println("In initalize");
 		correlationQueue = new ConcurrentHashMap<String, String>(); 		
 
 		createAvoidCompletionThread();
@@ -105,7 +111,9 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		
 		// After all the ports are ready, but before we start 
 		// sending messages, setup our connection, channel, exchange and queue
-		super.initializeRabbitChannelAndConnection();		
+		super.initializeRabbitChannelAndConnection();	
+		channel.basicQos(1); // FairDispatch not RoundRobin
+		System.out.println("QOS set in RabbitMQRequestProcess");
 		bindAndSetupQueue();
 		
 		DefaultConsumer consumer = getNewDefaultConsumer();
@@ -254,20 +262,23 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		// Do not use the routing key, use the value sent with input message.  
 
 		if (correlationIdAH.isAvailable()) {
-			trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@process correlationId: " + correlationId);									
-			correlationId = correlationIdAH.getString(tuple);
+			correlationId = correlationIdAH.getString(tuple);			
+			trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@process correlationId: " + correlationId);
 			routingKey = correlationQueue.getOrDefault(correlationId, null);
 			if (routingKey == null) {
-				trace.warning(String.format("No routingKey for correlationId:%s", correlationId));
-				
-				// TODO * increment count of warning - missing routingKey - only one response allowed.
+				trace.warning(Messages.getString("NO_ROUTINGKEY_FOR_CORRELATIONID", correlationId));						
+				lostCorrelationIds.increment();
 				return;
 			}
-		} else {
-			// TODO * raise exception - we need a correlationId on the input port
-			trace.warning(String.format("Failed to find correlationId:%s", correlationId));
-			isConnected.lostCorrelationIdIncrement();
+			if (!correlationQueue.remove(correlationId, routingKey)) {
+				trace.warning(String.format(Messages.getString("ROUTINGKEY_VANISHED", correlationId)));
+				lostCorrelationIds.increment();				
+				return;
 
+			}
+		} else {
+			// missing mandatory attribute
+			throw new Exception(Messages.getString("ATTRIBUTE_NOT_AVAILABLE",correlationIdAH.getName() )); //$NON-NLS-1$			
 
 		}
 		BasicProperties.Builder propsBuilder = new BasicProperties.Builder();
@@ -318,6 +329,12 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 			trace.log(TraceLevel.ERROR, "Failed to send message after " + attemptCount + " attempts."); //$NON-NLS-1$ //$NON-NLS-2$
 		}		
 	}
+
+	@CustomMetric(name = "lostCorrelationIds", kind = Metric.Kind.COUNTER,
+		    description = "The number of times a corrleation key was not found.")
+	public void setLostCorrelationIds(Metric lostCorrelationIds) {
+		this.lostCorrelationIds = lostCorrelationIds;
+	}	
 	
 
     

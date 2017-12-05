@@ -16,16 +16,27 @@ else
   endif
   # Set the STREAMSX_RABBITMQ_TOOLKIT variable if streamsx.rabbitmq sample or toolkit location changed in your environment.
   ifeq ($(STREAMSX_RABBITMQ_TOOLKIT),)
-    ifneq ($(realpath ../../com.ibm.streamsx.rabbitmq),)
-      STREAMSX_RABBITMQ_TOOLKIT = ../../com.ibm.streamsx.rabbitmq
+    ifneq ($(realpath ../../../com.ibm.streamsx.rabbitmq),)
+      STREAMSX_RABBITMQ_TOOLKIT = ../../../com.ibm.streamsx.rabbitmq
     endif
     ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq),)
       STREAMSX_RABBITMQ_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq
     endif
   endif
+  ifeq ($(STREAMSX_JSON_TOOLKIT),)
+    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.json),)
+      STREAMSX_JSON_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.json
+    endif
+  endif
+
+
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  SPL_PATH = $(STREAMSX_RABBITMQ_TOOLKIT)
+  SPL_PATH = $(STREAMSX_RABBITMQ_TOOLKIT):$(STREAMSX_JSON_TOOLKIT) 
 endif
+
+$(info $$STREAMSX_RABBITMQ_TOOLKIT is [${STREAMSX_RABBITMQ_TOOLKIT}])
+$(info $$SPL_PATH is [${SPL_PATH}])
+
 
 SPLC_FLAGS += -t $(SPL_PATH)
 
@@ -33,6 +44,7 @@ SPLC = $(STREAMS_INSTALL)/bin/sc
 
 SPL_CMD_ARGS ?=
 SPL_MAIN_COMPOSITE = com.ibm.streamsx.rabbitmq.sample::RabbitMQRestServer
+
 
 all:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-dir $(OUTPUT_DIR) $(SPL_CMD_ARGS)
