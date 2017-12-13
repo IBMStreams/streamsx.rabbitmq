@@ -56,10 +56,16 @@ import com.rabbitmq.client.ShutdownSignalException;
 @InputPorts({@InputPortSet(description="Port that excretes requests", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that consumes responses", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 public class RabbitMQRequestProcess extends RabbitMQSource {
-	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class
-			.getCanonicalName());	
-
-	ConcurrentHashMap<String, String> correlationQueue = null;
+	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class.getCanonicalName());	
+	class requestContext {
+		requestContext(String replyTo, long deliveryTag) {
+			this.replyTo = replyTo; this.deliveryTag = deliveryTag;
+		}
+		public String replyTo;
+		public long deliveryTag;
+	};
+	//ConcurrentHashMap<String, String> correlationQueue = null;
+	ConcurrentHashMap<String, requestContext> correlationQueue = null;
 	// TODO * move in from Sink should this be moved up to ...BaseOper
 	Integer deliveryMode = 1;
 	private Metric lostCorrelationIds;
@@ -85,8 +91,9 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				+ " in Job: " + context.getPE().getJobId()); //$NON-NLS-1$
 
 		// produce tuples returns immediately, but we don't want ports to close
+
 		System.out.println("In initalize");
-		correlationQueue = new ConcurrentHashMap<String, String>(); 		
+		correlationQueue = new ConcurrentHashMap<String, requestContext>(); 		
 
 		createAvoidCompletionThread();
 
@@ -117,7 +124,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		bindAndSetupQueue();
 		
 		DefaultConsumer consumer = getNewDefaultConsumer();
-		channel.basicConsume(queueName, true, consumer);
+		channel.basicConsume(queueName, false, consumer);     // NO autoAck
 		
 		while (!Thread.interrupted()){
 			isConnected.waitForMetricChange();
@@ -127,12 +134,12 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 						"New properties have been found so the client is restarting."); //$NON-NLS-1$
 				resetRabbitClient();
 				consumer = getNewDefaultConsumer();
-				channel.basicConsume(queueName, true, consumer);
+				channel.basicConsume(queueName, false, consumer);    // not autoAck??
 			}
 		}
 	}	
 	
-	private Thread getNewConsumerThread( ConcurrentHashMap<String, String>corrolationQueue) {
+	private Thread getNewConsumerThread( ConcurrentHashMap<String, requestContext>corrolationQueue) {
 		return getOperatorContext().getThreadFactory().newThread(
 				new Runnable() {
 
@@ -201,7 +208,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 					correlationId = properties.getCorrelationId(); 
 					trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@handleDelivery correlationId: " + correlationId);
 					trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@handleDelivery replyTo: " + properties.getReplyTo());																			
-					correlationQueue.put(correlationId, properties.getReplyTo());
+					correlationQueue.put(correlationId, new requestContext(properties.getReplyTo(),envelope.getDeliveryTag()));
 					tuple.setString(correlationIdAH.getName(), correlationId);					
 				}
 
@@ -258,19 +265,21 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		byte[] message = messageAH.getBytes(tuple);
 		
 		String routingKey = ""; //$NON-NLS-1$
+		requestContext rc = null;
 		Map<String, Object> headers = new HashMap<String, Object>();
 		// Do not use the routing key, use the value sent with input message.  
 
 		if (correlationIdAH.isAvailable()) {
 			correlationId = correlationIdAH.getString(tuple);			
 			trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@process correlationId: " + correlationId);
-			routingKey = correlationQueue.getOrDefault(correlationId, null);
-			if (routingKey == null) {
+			rc  = correlationQueue.getOrDefault(correlationId, null);
+			
+			if (rc == null) {
 				trace.warning(Messages.getString("NO_ROUTINGKEY_FOR_CORRELATIONID", correlationId));						
 				lostCorrelationIds.increment();
 				return;
 			}
-			if (!correlationQueue.remove(correlationId, routingKey)) {
+			if (!correlationQueue.remove(correlationId, rc)) {
 				trace.warning(String.format(Messages.getString("ROUTINGKEY_VANISHED", correlationId)));
 				lostCorrelationIds.increment();				
 				return;
@@ -281,6 +290,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 			throw new Exception(Messages.getString("ATTRIBUTE_NOT_AVAILABLE",correlationIdAH.getName() )); //$NON-NLS-1$			
 
 		}
+		routingKey = rc.replyTo;
 		BasicProperties.Builder propsBuilder = new BasicProperties.Builder();
 		if (messageHeaderAH.isAvailable()) {
 			headers = (Map<String, Object>) tuple.getMap(messageHeaderAH.getName());
@@ -294,7 +304,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				trace.log(TraceLevel.DEBUG,
 						"Producing message: " + message.toString() + " in thread: " + Thread.currentThread().getName()); //$NON-NLS-1$ //$NON-NLS-2$
 			
-			channel.basicPublish(exchangeName, routingKey, propsBuilder.build(), message);
+			channel.basicPublish(exchangeName, routingKey, propsBuilder.build(), message);  // send response. 
 			if (isConnected.getValue() == 0){
 				// We succeeded at publish, so we must be connected
 				// Adding this to deal with an issue where we catch 
@@ -302,6 +312,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				// disconnected
 				isConnected.setValue(1); 
 			}
+			channel.basicAck(rc.deliveryTag, false);        // ack the requests
 		} catch (Exception e) {
 			trace.log(TraceLevel.ERROR, "Exception message:" + e.getMessage() + "\r\n"); //$NON-NLS-1$ //$NON-NLS-2$
 			handleFailedPublish(message, routingKey, propsBuilder);
