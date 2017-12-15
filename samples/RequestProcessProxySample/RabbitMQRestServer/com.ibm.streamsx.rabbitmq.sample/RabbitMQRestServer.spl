@@ -8,15 +8,12 @@ use com.ibm.streamsx.rabbitmq::RabbitMQRequestProcess ;
 
 composite RabbitMQRestServer
 {
-			//hostAndPort : "192.168.42.80:5672" ;
-			//hostAndPort :"9.108.82.149:5672" ;
-			//hostAndPort : "9.108.94.171:5672" ;
-			//hostAndPort : "192.168.8.112:5672";
-			//hostAndPort : "192.168.42.66:5672";
-			//hostAndPort : "169.254.151.37:5672";
-	param expression<rstring> $username : "my_user";
-	  expression<rstring> $password : "my_pass";
-	  expression<rstring> $hostport : "9.108.82.26:5672" ;
+	param 
+	  expression<rstring> $username: getSubmissionTimeValue("user", "my_user");	
+	  expression<rstring> $password : getSubmissionTimeValue("password", "my_pass");		  
+	  expression<rstring> $hostport : getSubmissionTimeValue("hostport", "9.108.94.171:5672");		
+	  expression<rstring> $queueName : getSubmissionTimeValue("queueName", "rpc_queue");			  
+	    	  
 	type
 	// Call out the header elements that you want explicitly.
 		HeaderType = rstring Accept, rstring Connection, rstring User_Agent,
@@ -36,15 +33,11 @@ composite RabbitMQRestServer
 			RabbitMQRequestProcessTest = RabbitMQRequestProcess(TupleToJSON_5_out0)
 		{
 			param
-
-			hostAndPort : $hostport;			
-			username: $username;
-			password: $password;
-
-				
-				exchangeName : "" ;
-				//queueName : "SmokeTest" ;
-				queueName: "rpc_queue";
+				hostAndPort : $hostport;			
+				username: $username;
+				password: $password;
+				queueName: $queueName;
+				exchangeName : "" ;				
 		}
 
 		() as FileSink_3 = FileSink(JSONToTuple_4_out0 as inputStream)
@@ -148,9 +141,7 @@ composite RabbitMQRestServer
 						rpc.response = insert(IO.response, "dup",(rstring) idx) ;
 						submit(rpc, O) ;
 					}
-
 				}
-
 		}
 
 		(stream<IO> Filter_12_out0 ; stream<IO> HeaderFilter_out1) as HeaderFilter =

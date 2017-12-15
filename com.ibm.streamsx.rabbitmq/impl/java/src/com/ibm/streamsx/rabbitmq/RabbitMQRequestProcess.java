@@ -59,12 +59,12 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class.getCanonicalName());	
 	class requestContext {
 		requestContext(String replyTo, long deliveryTag) {
-			this.replyTo = replyTo; this.deliveryTag = deliveryTag;
+			this.replyTo = replyTo;
+			this.deliveryTag = deliveryTag;
 		}
 		public String replyTo;
 		public long deliveryTag;
 	};
-	//ConcurrentHashMap<String, String> correlationQueue = null;
 	ConcurrentHashMap<String, requestContext> correlationQueue = null;
 	// TODO * move in from Sink should this be moved up to ...BaseOper
 	Integer deliveryMode = 1;
@@ -92,7 +92,6 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 
 		// produce tuples returns immediately, but we don't want ports to close
 
-		System.out.println("In initalize");
 		correlationQueue = new ConcurrentHashMap<String, requestContext>(); 		
 
 		createAvoidCompletionThread();
@@ -102,7 +101,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		processThread.setDaemon(false);
         
         // TODO:
-        // If needed, insert code to establish connections or resources to communicate an external system or data store.
+        // If needed, insert code to establish connections or resou<es to communicate an external system or data store.
         // The configuration information for this may come from parameters supplied to the operator invocation, 
         // or external configuration files or a combination of the two.
 	}
@@ -119,14 +118,15 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		// After all the ports are ready, but before we start 
 		// sending messages, setup our connection, channel, exchange and queue
 		super.initializeRabbitChannelAndConnection();	
-		channel.basicQos(1); // FairDispatch not RoundRobin
-		System.out.println("QOS set in RabbitMQRequestProcess");
+		channel.basicQos(1, false); // FairDispatch not RoundRobin
+
 		bindAndSetupQueue();
 		
 		DefaultConsumer consumer = getNewDefaultConsumer();
-		channel.basicConsume(queueName, false, consumer);     // NO autoAck
+		channel.basicConsume(queueName, false, consumer); // no autoAck !
 		
 		while (!Thread.interrupted()){
+
 			isConnected.waitForMetricChange();
 			if (isConnected.getValue() != 1
 					&& newCredentialsExist()){
@@ -134,7 +134,8 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 						"New properties have been found so the client is restarting."); //$NON-NLS-1$
 				resetRabbitClient();
 				consumer = getNewDefaultConsumer();
-				channel.basicConsume(queueName, false, consumer);    // not autoAck??
+				System.out.println("in thread loop");				
+				channel.basicConsume(queueName, false, consumer);
 			}
 		}
 	}	
@@ -206,8 +207,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@handleDelivery +correlationId: " + correlationId);				
 				if (correlationIdAH.isAvailable()) {
 					correlationId = properties.getCorrelationId(); 
-					trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@handleDelivery correlationId: " + correlationId);
-					trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@handleDelivery replyTo: " + properties.getReplyTo());																			
+					trace.log(TraceLevel.INFO,"@handleDelivery correlationId: " + correlationId, " replyTo:" + properties.getReplyTo());																			
 					correlationQueue.put(correlationId, new requestContext(properties.getReplyTo(),envelope.getDeliveryTag()));
 					tuple.setString(correlationIdAH.getName(), correlationId);					
 				}
@@ -271,7 +271,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 
 		if (correlationIdAH.isAvailable()) {
 			correlationId = correlationIdAH.getString(tuple);			
-			trace.log(TraceLevel.INFO,"RabbitMQRequestProcess@process correlationId: " + correlationId);
+			trace.log(TraceLevel.INFO,"@process correlationId: " + correlationId);
 			rc  = correlationQueue.getOrDefault(correlationId, null);
 			
 			if (rc == null) {
@@ -283,7 +283,6 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				trace.warning(String.format(Messages.getString("ROUTINGKEY_VANISHED", correlationId)));
 				lostCorrelationIds.increment();				
 				return;
-
 			}
 		} else {
 			// missing mandatory attribute
@@ -300,9 +299,11 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 		propsBuilder.correlationId(correlationId);
 
 		try {
+			trace.log(TraceLevel.INFO, "corrId:" + correlationId + " acking the original request");
+			channel.basicAck(rc.deliveryTag, false);
+			
 			if (trace.isLoggable(TraceLevel.DEBUG))
-				trace.log(TraceLevel.DEBUG,
-						"Producing message: " + message.toString() + " in thread: " + Thread.currentThread().getName()); //$NON-NLS-1$ //$NON-NLS-2$
+				trace.log(TraceLevel.DEBUG, "corrId:" + correlationId +  " send response:" + message.toString()); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			channel.basicPublish(exchangeName, routingKey, propsBuilder.build(), message);  // send response. 
 			if (isConnected.getValue() == 0){
@@ -312,7 +313,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 				// disconnected
 				isConnected.setValue(1); 
 			}
-			channel.basicAck(rc.deliveryTag, false);        // ack the requests
+
 		} catch (Exception e) {
 			trace.log(TraceLevel.ERROR, "Exception message:" + e.getMessage() + "\r\n"); //$NON-NLS-1$ //$NON-NLS-2$
 			handleFailedPublish(message, routingKey, propsBuilder);
