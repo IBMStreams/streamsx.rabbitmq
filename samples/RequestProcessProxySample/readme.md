@@ -1,6 +1,6 @@
 #  J2EE Gateway to RabbitMQRequestProcess() operator
 
-## Overview
+## Overview :
 This sample has two compononts: a Streams application and 
 J2EE Liberty Servlet that communicate via RabbitMQ.  Streams does the processing, 
 Liberty is web interface and RabbitMQ is the arbitrator.   
