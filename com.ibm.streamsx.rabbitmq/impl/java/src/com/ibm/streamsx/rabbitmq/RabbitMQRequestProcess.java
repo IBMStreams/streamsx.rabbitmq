@@ -33,25 +33,7 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
 
-/**
- * Class for an operator that receives a tuple and then optionally submits a tuple. 
- * This pattern supports one or more input streams and one or more output streams. 
- * <P>
- * The following event methods from the Operator interface can be called:
- * </p>
- * <ul>
- * <li><code>initialize()</code> to perform operator initialization</li>
- * <li>allPortsReady() notification indicates the operator's ports are ready to process and submit tuples</li> 
- * <li>process() handles a tuple arriving on an input port 
- * <li>processPuncuation() handles a punctuation mark arriving on an input port 
- * <li>shutdown() to shutdown the operator. A shutdown request may occur at any time, 
- * such as a request to stop a PE or cancel a job. 
- * Thus the shutdown() may occur while the operator is processing tuples, punctuation marks, 
- * or even during port ready notification.</li>
- * </ul>
- * <p>With the exception of operator initialization, all the other events may occur concurrently with each other, 
- * which lead to these methods being called concurrently by different threads.</p> 
- */
+
 @PrimitiveOperator(name="RabbitMQRequestProcess", namespace="com.ibm.streamsx.rabbitmq", description = RabbitMQRequestProcess.DESC)
 @InputPorts({@InputPortSet(description="Port that excretes requests", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that consumes responses", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
@@ -350,19 +332,7 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
 	
 
     
-    /**
-     * Process an incoming punctuation that arrived on the specified port.
-     * @param stream Port the punctuation is arriving on.
-     * @param mark The punctuation mark
-     * @throws Exception Operator failure, will cause the enclosing PE to terminate.
-
-    @Override
-    public void processPunctuation(StreamingInput<Tuple> stream,
-    		Punctuation mark) throws Exception {
-    	// For window markers, punctuate all output ports 
-    	super.processPunctuation(stream, mark);
-    }
-     */
+  
     /**
      * Shutdown this operator.
      * @throws Exception Operator failure, will cause the enclosing PE to terminate.
@@ -378,14 +348,16 @@ public class RabbitMQRequestProcess extends RabbitMQSource {
     }
      */    
 	public static final String DESC = 
-			"This operator processes RPC requests and thier corresponsing response, using a RabbitMQ sanctioned pattern. " +
-			"The client creates a private response queue on startup, the request includes a message, responseQueue and coorelationID." +
-			"This operator excretes the message and a corrolationId. On completion of processing by Streams the results are returned " +
-			"to the operator's input port with the correlationId. The message is placed on the responseQueue with the coorelationID." +
+			"This operator processes RPC requests and thier corresponsing response, using a RabbitMQ sanctioned pattern. " + //$NON-NLS-1$
+			"The client creates a private response queue on startup, the request includes a message, responseQueue and coorelationID." + //$NON-NLS-1$
+			"This operator excretes the message and a corrolationId. On completion of processing by Streams the results are returned " + //$NON-NLS-1$
+			"to the operator's input port with the correlationId. The message is placed on the responseQueue with the coorelationID." + //$NON-NLS-1$
 			"The broker is assumed to be already configured and running. " + //$NON-NLS-1$
+			"\\n\\n" + //$NON-NLS-1$
 			"The incoming stream, with the request, has two required attributes: message, correlationId." + //$NON-NLS-1$
 			"The outgoing streams, with the completed response has two required attributes: message, correlationId. " +
-			"The outgoing correlationId value must be the same as the incoming correlationId. " + 
+			"The outgoing correlationId value must be the same as the incoming correlationId. " + //$NON-NLS-1$
+			"\\n\\n" + //$NON-NLS-1$
 			"The exchange name, queue name, and routing key can be specified using parameters. " + //$NON-NLS-1$
 			"If a specified exchange does not exist, it will be created as a non-durable exchange. " +  //$NON-NLS-1$
 			"All exchanges created by this operator are non-durable and auto-delete."  +   //$NON-NLS-1$

@@ -52,7 +52,8 @@ all:
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 
-
+stand:
+	$(OUTPUT_DIR)/bin/standalone
 
 
 
