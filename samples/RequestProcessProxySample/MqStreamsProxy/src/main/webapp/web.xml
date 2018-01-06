@@ -40,6 +40,11 @@
 			<param-name>timeout</param-name>
 			<param-value>7000</param-value>			
 		</init-param>
+	        <init-param>
+			<description>node rabbitmq is running on</description>
+			<param-name>queueHost</param-name>
+			<param-value>9.108.82.193</param-value>:
+	        </init-param>
 		<async-supported>true</async-supported>
 	</servlet>
 </web-app>

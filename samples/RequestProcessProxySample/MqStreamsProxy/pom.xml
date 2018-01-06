@@ -106,9 +106,11 @@
 	  <plugin>
 	    <groupId>org.eclipse.jetty</groupId>
 	    <artifactId>jetty-maven-plugin</artifactId>
-	    <!--<version>9.4.8-SNAPSHOT</version>-->
+	    <version>9.4.8.v20171121</version>
 	    <configuration>
-	      <war>${project.basedir}/target/MqStreamsProxy-1.0.war</war>	      
+	      <webAppConfig>
+		<overrideDescriptor>src/main/webapp/web.xml</overrideDescriptor>
+	      </webAppConfig>
 	    </configuration>
 	  </plugin>
         </plugins>
