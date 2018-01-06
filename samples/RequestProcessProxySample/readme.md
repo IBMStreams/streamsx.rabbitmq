@@ -71,6 +71,8 @@ processing results are returned following the opposite path.
 
 ## Components 
 
+**This is changing**
+
 In order to demo you need the following. My development 
 consists of a Mac running OSX and QSE4.2 VM running on the
 same machine. 
@@ -83,7 +85,9 @@ I'm using the Bluemix Cloud  since include and IDE as well.
 on the Mac. Streams QSE has maven installed, you can build within the QSE and copy 
 the resulting war to the with Liberty for deployment.  
 
-## Configuration 
+## Configuration
+
+
 1) In the scenario presented here, RabbitMQ is on the
 VMHost (mac) moving messages between the mac and the VM using the default 
 RabbitMQ username password (guest/guest). 
@@ -104,12 +108,29 @@ application, in my case it charon.local.
 
 * Import the Streams application, build and run it. It can run in standalone or distribured mode.
 
-* Build the Server using maven 
-~~~
-> cd ... MqStreamsProxy
-> mvn clean
-> mvn war:war
-~~~
+* Build the and run Servelt in Jetty, Maven will pull down Jetty.
+
+The servlet has a number of parameters that you may want change for your enviroment, these values
+can be set in the web.xml.
+
+* defaultRequestQueue : common queue that all servers are listening on
+* log : enable logging
+* timeout : time to timeout a reqequest
+* queueHost : host rabbitmq is running on
+* username : rabbitmq username
+* password : rabbitmq password
+gg* asyn-supported : leave as true
+* port : port the servlet listens on
+
+# Build the servlet and invoke Jetty with servlet
+
+```bash
+ cd ... MqStreamsProxy
+ mvn clean
+ mvn package
+ mvn war:war
+ mvn jetty:run-war
+```
 
 Deploy the resulting application using
    ... MqStreamProxy/target/MqStreamProxy-1.0.war
@@ -123,16 +144,16 @@ the command line. The request has the following format:
 * sleep : number of seconds to wait, simulates computation. 
 * mirror : reflect back request. 
 
-## Request 
-~~~
+### Request 
+```bash
 curl "http://localhost:9080/MqStreamsProxy/MqStreamsProxy?fill=5&amp;sleep=5&amp;mirror=0"
-~~~
+```
 
 ## Response
-The resut request returns after 5 seconds, note that the 5 'A's of fill. 
-~~~
+The result request returns after 5 seconds, note that the 5 'A's of fill. 
+
+```
 {"sequenceNumber":"44","request":"fill=5&amp;sleep=1&amp;mirror=0","method":"GET","timeString":"","contextPath":"/MqStreamsProxy","block":"1","fill":"AAAAA","pathInfo":"/MqStreamsProxy"}
-~~~
+```
 
-
- 
+## 
