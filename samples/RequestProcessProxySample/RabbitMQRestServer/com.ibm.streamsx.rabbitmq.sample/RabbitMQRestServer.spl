@@ -9,9 +9,9 @@ use com.ibm.streamsx.rabbitmq::RabbitMQRequestProcess ;
 composite RabbitMQRestServer
 {
 	param 
-	  expression<rstring> $username: getSubmissionTimeValue("user", "my_user");	
-	  expression<rstring> $password : getSubmissionTimeValue("password", "my_pass");		  
-	  expression<rstring> $hostport : getSubmissionTimeValue("hostport", "9.108.94.171:5672");		
+	  expression<rstring> $username: getSubmissionTimeValue("user", "guest");	
+	  expression<rstring> $password : getSubmissionTimeValue("password", "guest");		  
+	  expression<rstring> $hostport : getSubmissionTimeValue("hostport", "localhost:5672");		
 	  expression<rstring> $queueName : getSubmissionTimeValue("queueName", "rpc_queue");			  
 	    	  
 	type

@@ -28,12 +28,12 @@
 		<init-param>
 			<description>RabbitMQ username</description>
 			<param-name>username</param-name>
-			<param-value>my_user</param-value>
+			<param-value>guest</param-value>
 		</init-param>
 		<init-param>
 			<description>RabbitMQ password</description>
 			<param-name>password</param-name>
-			<param-value>my_pass</param-value>
+			<param-value>guest</param-value>
 		</init-param>
 		<init-param>
 			<description>Number of milliseconds to wait for a response queue message.</description>
@@ -43,7 +43,7 @@
 	        <init-param>
 			<description>node rabbitmq is running on</description>
 			<param-name>queueHost</param-name>
-			<param-value>9.108.82.193</param-value>:
+			<param-value>localhost</param-value>:
 	        </init-param>
 		<async-supported>true</async-supported>
 	</servlet>
