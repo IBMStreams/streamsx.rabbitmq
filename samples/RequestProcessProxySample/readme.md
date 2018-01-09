@@ -18,8 +18,7 @@ The users request has been load balanced and scaled to the Streams application.
 
 The take away, Streams handles time bound and resources intensive processing. Superior components exist for: load balancing, routing, session management and rendering would be used in such an environment. 
 
-The scenario involves a http/REST requests fielded by a WebServer that is mapped to message broker that communicates with Streams. The sample uses and J2EE Server (WebSphere Liberty) and AMQP  message (RabbitMQ) brokers. The message broker enables more clients (WebServer) and/or requests processors (Streams) to be added independently.
-The example uses LiberyServer webserver using J2EE specification and RabbitMQ using XXXX specification. The standard are stable enough that most if not all the code provided is applicable to your environment.
+The sample uses an J2EE Server (Jetty) and AMQP  message (RabbitMQ) message broker. The message broker enables more clients (WebServer) and/or requests processors (Streams) to be added independently. 
 
 ## Implementation Specifics
 The design is based upon the RabbitMQ's [Remote procedure call RPC](https://www.rabbitmq.com/tutorials/tutorial-six-python.html) pattern. Using the terminology of the design the application server is client of the Streams application. A client creates private response queue on start up, requests are sent over a common queue that all clients and servers are connected. The server (Streams application) gets the requests with a responseQueue identifier and processes the request. Responses are returned on the responseQueue the accompanied the request. 
@@ -40,101 +39,100 @@ The following diagram is a more focused  view the processing distribution.
 
 This example is a general case of processing Streams requests on a large web site. Significant websites' are customized beyond the scope of this example. The goal is provide some guidance with the provided code in order to integrates Streams component within your website's environment. 
 
-## Sample Overview. 
- 
-This is a walk through of bringing up the sample. This involves a J2EE server, Streams and RabbitMQ. 
-
-### Missing  
-- security configuration if using the default password, localhost issue
-
-
-This sample has consists of J2EE Liberty Servlet communicating with Streams via RabbitMQ.  
+# MqStreamProxy Sample
+The sample consists of J2EE Liberty Servlet communicating with Streams via RabbitMQ.  This is a walk through
+of bringing up the sample and running a test(s) Tests are invoked using curl to the servlet, the servet passes
+the reqeust to Strams that generatates a response and communictates it back to the originating client. 
 
 The components can be scaled independently by adding/removing Servlets or Streams applications as load fluctuates. 
 
-The directories : 
 
-* RabbitMQRabbitRestServer : A Steams application that executes commands: 
-sleep, fill and mirror. Commands and the corresponding results are
+### Directories : 
+
+* RabbitMQRabbitRestServer : A Steams application that executes commands: sleep, fill and mirror. Commands and the corresponding results are
 communicated via RabbitMQ. 
-* MqStreamsProxy : A J2EE Servlet that accepts REST 
-requests, transmits them via MQRabbit which 
-are processed by the Streams application. The 
+* MqStreamsProxy : A J2EE Servlet that accepts REST requests, transmits them via MQRabbit which are processed by the Streams application. The 
 processing results are returned following the opposite path. 
 
 
-### PreRequisites  
-- [Streams QSE](https://www.ibm.com/developerworks/downloads/im/streamsquick/index.html) : This is Includes Streams development environment where the sample code can be inspected and modified. 
-- [RabbitMQ](https://www.rabbitmq.com/download.html) 
-- [LibertyServer](https://developer.ibm.com/wasdev/downloads/liberty-profile-using-eclipse/) : Includes the Eclipse development environment where the sample code can be inspected and modified. 
 
 
 ## Components 
 
-**This is changing**
-
-In order to demo you need the following. My development 
-consists of a Mac running OSX and QSE4.2 VM running on the
-same machine. 
-
-* RabbitMQ installed configured and running. This is running 
-on the Mac. 
-* LibertySever Installed and running. This is running on the Mac, 
-I'm using the Bluemix Cloud  since include and IDE as well. 
-* Optional : Maven installed, on the VM hosting system, in my case that is 
-on the Mac. Streams QSE has maven installed, you can build within the QSE and copy 
-the resulting war to the with Liberty for deployment.  
-
-## Configuration
+* [Streams QSE](https://www.ibm.com/developerworks/downloads/im/streamsquick/index.html) : This is Includes Streams development environment where the sample code can be inspected and modified. Where everything runs.
+* [RabbitMQ](https://www.rabbitmq.com/download.html) download site. Must be installed and running, the steps are described below.
+* Maven : The demo uses maven to install a jetty server and run the war file.
+* [JettyServer]:(https://www.eclipse.org/jetty/) : J2EE server used for demo. 
+* Optional - [LibertyServer](https://developer.ibm.com/wasdev/downloads/liberty-profile-using-eclipse/) : Includes the Eclipse development environment where the sample code can be inspected and modified. Used for development. 
 
 
-1) In the scenario presented here, RabbitMQ is on the
-VMHost (mac) moving messages between the mac and the VM using the default 
-RabbitMQ username password (guest/guest). 
-~~~
-By default, the guest user is prohibited from connecting to the broker remotely; it can 
-only connect over a loopback interface (i.e. localhost). 
-~~~
-To remedy the situation refer to  : https://www.rabbitmq.com/access-control.html. 
- 
 
-2) You will need the host computer name or IP when submitting the Streams 
-application, in my case it charon.local.  
+* RabbitMQ installed, 
 
 
-# Bringing up the components. 
 
-* Bring up RabbitMQ
+# Bring up the components. 
 
-* Import the Streams application, build and run it. It can run in standalone or distribured mode.
+## Intall RabbitMQ
 
-* Build the and run Servelt in Jetty, Maven will pull down Jetty.
+I installed RabbitMQ using this [link](https://gist.github.com/ravibhure/92e780ecc850cd5ab0ab) 
 
-The servlet has a number of parameters that you may want change for your enviroment, these values
-can be set in the web.xml.
+## Bring up RabbitMQ
 
-* defaultRequestQueue : common queue that all servers are listening on
-* log : enable logging
-* timeout : time to timeout a reqequest
-* queueHost : host rabbitmq is running on
-* username : rabbitmq username
-* password : rabbitmq password
-gg* asyn-supported : leave as true
-* port : port the servlet listens on
-
-# Build the servlet and invoke Jetty with servlet
-
+To bring up the Rabbit
+```
+sudo service rabbitmq-server start
+```
+Verify that the server is up...
 ```bash
- cd ... MqStreamsProxy
- mvn clean
- mvn package
- mvn war:war
- mvn jetty:run-war
+sudo rabbitmqctl status
+```
+Output will describe the state of the system. 
+
+I use the web interface to monitor RabbitMQ. You must enable the iterface once, use this command:
+```bash
+sudo rabbitmq-plugins enable rabbitmq_managment
 ```
 
-Deploy the resulting application using
-   ... MqStreamProxy/target/MqStreamProxy-1.0.war
-   
+Access the web console with [http://localhost:15672/#/]([http://localhost:15672/#/), the default
+username/password is guest/guest.
+
+
+## Bring up Streams application
+
+### Build the Toolkit.
+
+```bash
+cd ... streamsx.rabbitmq/comstreamsx.rabbitmq
+ant clean
+ant
+```
+### Build and run the Streams application. 
+
+Clean and build the Stream application.
+```bash
+cd samples/RequestProcsSample/RabbitMQRestServe
+make clean
+make
+```
+Run the Streams application in Standalone mode.
+```bash
+make stand
+```
+
+### Bring up Servlet
+
+The provided maven pom file will install Jetty, build and run Servlet in Jetty. 
+
+```
+cd ... samples/RequestProcessProxySample/MqStreamsProxy
+mvn clean
+mvn package
+mvn war:war
+mvn jetty:run-war
+```
+
+
 # Demo  
 
 Rest requests to the application can be made with curl from 
@@ -143,6 +141,7 @@ the command line. The request has the following format:
 * fill : number of 'A' to return. 
 * sleep : number of seconds to wait, simulates computation. 
 * mirror : reflect back request. 
+
 
 ### Request 
 ```bash
@@ -156,4 +155,35 @@ The result request returns after 5 seconds, note that the 5 'A's of fill.
 {"sequenceNumber":"44","request":"fill=5&amp;sleep=1&amp;mirror=0","method":"GET","timeString":"","contextPath":"/MqStreamsProxy","block":"1","fill":"AAAAA","pathInfo":"/MqStreamsProxy"}
 ```
 
-## 
+## Other
+* You can invoke mulitple clients and adjust the parameters.
+* You can start muliple Streams applications if you want simultaneous processing. 
+
+# Addendums 
+
+## Servlet Addendum 
+The servlet has a number of parameters that you may want change for your enviroment, these values
+can be set in the web.xml.
+
+* defaultRequestQueue : common queue that all servers are listening on
+* log : enable logging
+* timeout : time to timeout a reqequest
+* queueHost : host rabbitmq is running on
+* username : rabbitmq username
+* password : rabbitmq password
+* asyn-supported : leave as true
+* port : port the servlet listens on
+
+
+Deploy the resulting application using
+   ... MqStreamProxy/target/MqStreamProxy-1.0.war
+   
+```
+
+## RabbitMQ Addendum
+
+* By default, the guest user is prohibited from connecting to the broker remotely; it can only connect over a loopback interface (i.e. localhost). To remedy the situation refer to  : https://www.rabbitmq.com/access-control.html. 
+
+
+
+##
