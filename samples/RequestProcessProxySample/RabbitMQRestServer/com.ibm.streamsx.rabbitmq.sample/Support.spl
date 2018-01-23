@@ -1,0 +1,30 @@
+namespace com.ibm.streamsx.rabbitmq.sample;
+
+
+int32 getCount(rstring src, rstring key)
+{
+	mutable int32 idxStr, idxEnd ;
+	mutable rstring strNum, keySep, srcTrm;
+	rstring sep = "=";
+	rstring trm = "&";
+	
+	srcTrm = src + trm;
+	keySep = key + sep;
+	
+	idxStr = findFirst(srcTrm, keySep, 0) ;
+	if(idxStr == - 1)
+	{
+		return((int32) - 1) ;
+	}
+
+	idxStr += length(keySep) ;
+	idxEnd = findFirst(srcTrm, trm, idxStr) ;
+	if(idxEnd == - 1)
+	{
+		return((int32) - 1) ;
+	}
+
+	idxEnd = idxEnd - idxStr ;
+	strNum = substring(srcTrm, idxStr, idxEnd) ;
+	return(int32) strNum ;
+}

@@ -81,6 +81,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 
 	protected AttributeHelper messageHeaderAH = new AttributeHelper("message_header"), //$NON-NLS-1$
 			routingKeyAH = new AttributeHelper("routing_key"), //$NON-NLS-1$
+			correlationIdAH = new AttributeHelper("correlationId"), //$NON-NLS-1$    // TODO * this is common, is this ok.....
 			messageAH = new AttributeHelper("message"); //$NON-NLS-1$
 
 	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class
@@ -530,6 +531,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 		supportedTypes.add(MetaType.USTRING);
 		
 		routingKeyAH.initialize(ss, false, supportedTypes);
+		correlationIdAH.initialize(ss, false, supportedTypes);		
 		
 		supportedTypes.add(MetaType.BLOB);
 		
@@ -590,6 +592,11 @@ public class RabbitMQBaseOper extends AbstractOperator {
 		URI  = value;
 	}
 
+	@Parameter(optional = true, description = "Name of the attribute for the correlation id. Default is \\\"correlationId\\\".")
+	public void setMessageCorrelationId(String value) {
+		correlationIdAH.setName(value);
+	}
+	
 	@Parameter(optional = true, description = "Name of the attribute for the message. Default is \\\"message\\\".")
 	public void setMessageAttribute(String value) {
 		messageAH.setName(value);
@@ -635,7 +642,13 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	public void setReconnectionAttempts(Metric reconnectionAttempts) {
 		this.reconnectionAttempts = reconnectionAttempts;
 	}
-	
+	/*
+	@CustomMetric(name = "lostCorrelationIds", kind = Metric.Kind.COUNTER,
+		    description = "The number of times a corrleation key was not found.")
+	public void setLostCorrelationIds(Metric lostCorrelationIds) {
+		this.lostCorrelationIds = lostCorrelationIds;
+	}	
+	*/
 	
 	public static final String BASE_DESC = 
  "\\n\\n**AppConfig**: " //$NON-NLS-1$

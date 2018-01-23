@@ -1,0 +1,50 @@
+
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	version="3.1">
+	<display-name>MqStreamsProxy</display-name>
+	<servlet>
+		<description>Web to Streams via MessageBus</description>
+		<display-name>RPCMessageBus</display-name>
+		<servlet-name>RPCMessageBus</servlet-name>
+		<servlet-class>com.ibm.streams.mq.RPCMessageBus</servlet-class>
+		<init-param>
+			<param-name>DefaultQueueName</param-name>
+			<param-value>rpc_queue</param-value>
+		</init-param>
+		<init-param>
+			<param-name>proxyVCAP</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<param-name>log</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<init-param>
+			<description>Possibly map pathInfo to a specific queue, include the leading slash. If the mapping does not exist use DefaultQueueName</description>
+			<param-name>pathQueueMap</param-name>
+			<param-value>{"/pythonDebug":"pythonDebug","/MqStreamsProxy/iceCream":"junk", "/SmokeTest":"SmokeTest"}</param-value>
+		</init-param>
+		<init-param>
+			<description>RabbitMQ username</description>
+			<param-name>username</param-name>
+			<param-value>guest</param-value>
+		</init-param>
+		<init-param>
+			<description>RabbitMQ password</description>
+			<param-name>password</param-name>
+			<param-value>guest</param-value>
+		</init-param>
+		<init-param>
+			<description>Number of milliseconds to wait for a response queue message.</description>
+			<param-name>timeout</param-name>
+			<param-value>7000</param-value>			
+		</init-param>
+	        <init-param>
+			<description>node rabbitmq is running on</description>
+			<param-name>queueHost</param-name>
+			<param-value>localhost</param-value>:
+	        </init-param>
+		<async-supported>true</async-supported>
+	</servlet>
+</web-app>
