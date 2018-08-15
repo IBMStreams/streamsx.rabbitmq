@@ -26,8 +26,7 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 @PrimitiveOperator(name = "RabbitMQSink", description = RabbitMQSink.DESC)
 public class RabbitMQSink extends RabbitMQBaseOper {
 
-	private final Logger trace = Logger.getLogger(RabbitMQSink.class
-			.getCanonicalName());
+	private final Logger trace = Logger.getLogger(RabbitMQSink.class.getCanonicalName());
 	Integer deliveryMode = 1;
 	int maxMessageSendRetries = 0;
 	int messageSendRetryDelay = 10000;
@@ -72,8 +71,7 @@ public class RabbitMQSink extends RabbitMQBaseOper {
 		
 		// Handle case of lost connection/failed authentication
 		// but we have new credentials from appConfig
-		if (isConnected.getValue() == 0
-				&& newCredentialsExist()){
+		if (isConnected.getValue() == 0 && newCredentialsExist()) {
 			try {
 				readyForShutdown = false;
 				resetRabbitClient();
@@ -98,15 +96,14 @@ public class RabbitMQSink extends RabbitMQBaseOper {
 		
 		try {
 			if (trace.isLoggable(TraceLevel.DEBUG))
-				trace.log(TraceLevel.DEBUG,
-						"Producing message: " + message.toString() + " in thread: " + Thread.currentThread().getName()); //$NON-NLS-1$ //$NON-NLS-2$
+				trace.log(TraceLevel.DEBUG, "Producing message: " + message.toString() + " in thread: " + Thread.currentThread().getName()); //$NON-NLS-1$ //$NON-NLS-2$
+			
 			channel.basicPublish(exchangeName, routingKey, propsBuilder.build(), message);
-			if (isConnected.getValue() == 0){
-				// We succeeded at publish, so we must be connected
-				// Adding this to deal with an issue where we catch 
-				// a stale AuthorizationException that makes us look 
-				// disconnected
-				isConnected.setValue(1); 
+			if (isConnected.getValue() == 0) {
+				// We succeeded at publish, so we must be connected. 
+				// Adding this to deal with an issue where we catch a stale
+				// AuthorizationException that makes us look disconnected.
+				setIsConnectedValue(1);
 			}
 		} catch (Exception e) {
 			trace.log(TraceLevel.ERROR, "Exception message:" + e.getMessage() + "\r\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -132,6 +129,7 @@ public class RabbitMQSink extends RabbitMQBaseOper {
 		// if we still can't send after the number of maxMessageSendRetries,
 		// we want to log error and move on
 		if (failedToSend) {
+			// TODO: Shall we reset "isConnected" here?
 			trace.log(TraceLevel.ERROR, "Failed to send message after " + attemptCount + " attempts."); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 	}

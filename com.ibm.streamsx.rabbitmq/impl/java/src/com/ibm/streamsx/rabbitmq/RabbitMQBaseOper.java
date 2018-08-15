@@ -66,11 +66,12 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	private static final String TRUSTSTORE_PASSWORD_PARAM_NAME = "trustStorePassword";
 	
 	
-	protected Channel channel;
-	protected Connection connection;
-	protected String username = "", //$NON-NLS-1$
-			password = "",  //$NON-NLS-1$
-			exchangeName = "", exchangeType = "direct"; //$NON-NLS-1$ //$NON-NLS-2$
+	protected Channel		channel			= null;
+	protected Connection	connection		= null;
+	protected String 		username		= "",			//$NON-NLS-1$
+							password		= "",			//$NON-NLS-1$
+							exchangeName 	= "",
+							exchangeType	= "direct";		//$NON-NLS-1$ //$NON-NLS-2$
 			
 	protected List<String> hostAndPortList = new ArrayList<String>();
 	protected Address[] addressArr; 
@@ -83,17 +84,18 @@ public class RabbitMQBaseOper extends AbstractOperator {
 			routingKeyAH = new AttributeHelper("routing_key"), //$NON-NLS-1$
 			messageAH = new AttributeHelper("message"); //$NON-NLS-1$
 
-	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class
-			.getCanonicalName());
+	private final static Logger trace = Logger.getLogger(RabbitMQBaseOper.class.getCanonicalName());
 	protected Boolean usingDefaultExchange = false;
 	private String URI = ""; //$NON-NLS-1$
 	private long networkRecoveryInterval = 5000;
 	
-	protected SynchronizedConnectionMetric isConnected;
-	private Metric reconnectionAttempts;
-	private String appConfigName = ""; //$NON-NLS-1$
-	private String userPropName;
-	private String passwordPropName;
+	protected	Metric isConnected;
+	private		long   isConnectedValueOld = 0;				// by default we are not connected	
+	private		Metric reconnectionAttempts;
+	private		Metric reconnectionAttemptsLatestBatch;
+	private		String appConfigName = "";					//$NON-NLS-1$
+	private		String userPropName;
+	private		String passwordPropName;
 	
 	/* SSL Parameters */
 	private Boolean useSSL = SSL_USE_SSL_DEFAULT;
@@ -186,7 +188,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 		if(paramNames.contains(USE_SSL_PARAM_NAME)) {
 			List<String> useSSLValue = checker.getOperatorContext().getParameterValues(USE_SSL_PARAM_NAME);
 			if(useSSLValue.get(0).equals("true")) {
-				// SSL connection is requried, ensure that the path to the 
+				// SSL connection is required, ensure that the path to the 
 				// keystore and truststore are specified
 				if(!paramNames.contains(KEYSTORE_PATH_PARAM_NAME)) {
 					checker.setInvalidContext(Messages.getString("MISSING_SSL_PARAM", KEYSTORE_PATH_PARAM_NAME), new Object[0]);
@@ -247,12 +249,14 @@ public class RabbitMQBaseOper extends AbstractOperator {
 		checker.checkDependentParameters("passwordPropName", "appConfigName", "userPropName"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
-	public synchronized void initialize(OperatorContext context)
-			throws Exception {
-		isConnected.setReconnectionAttempts(reconnectionAttempts);
+	
+	
+	public synchronized void initialize(OperatorContext context) throws Exception {
 		// Must call super.initialize(context) to correctly setup an operator.
 		super.initialize(context);
 	}
+	
+	
 	
 	protected boolean newCredentialsExist() {
 		PropertyProvider propertyProvider = null;
@@ -296,47 +300,43 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	 */
 	public void initializeRabbitChannelAndConnection() throws MalformedURLException, URISyntaxException, NoSuchAlgorithmException,
 			KeyManagementException, IOException, TimeoutException, InterruptedException, OperatorShutdownException, FailedToConnectToRabbitMQException, Exception {
-		do {
+		do {	
 			try {
 				ConnectionFactory connectionFactory = setupConnectionFactory();
 				
-				// If we return from this without throwing an exception, then we 
-				// have successfully connected
-				connection = setupNewConnection(connectionFactory, URI, addressArr, isConnected);
-				
-				
+				// If we return from this without throwing an exception,
+				// then we have successfully connected
+				connection = setupNewConnection(connectionFactory, URI, addressArr);
 				channel = initializeExchange();
-				
-				isConnected.setValue(1);
+				setIsConnectedValue(1);
 				
 				trace.log(TraceLevel.INFO,
 						"Initializing channel connection to exchange: " + exchangeName //$NON-NLS-1$
 								+ " of type: " + exchangeType + " as user: " + connectionFactory.getUsername()); //$NON-NLS-1$ //$NON-NLS-2$
 				trace.log(TraceLevel.INFO,
 						"Connection to host: " + connection.getAddress()); //$NON-NLS-1$
-			} catch (IOException | TimeoutException e) {
+			}
+			catch (IOException | TimeoutException e) {
 				e.printStackTrace();
 				trace.log(LogLevel.ERROR, Messages.getString("FAILED_TO_SETUP_CONNECTION", e.getMessage())); //$NON-NLS-1$
 				if (autoRecovery == true){
 					Thread.sleep(networkRecoveryInterval);
 				}
 			}
-		} while (autoRecovery == true 
-				&& (connection == null || channel == null)
-				&& !shuttingDown.get());
+		} while ( autoRecovery == true && (connection == null || channel == null) && !shuttingDown.get());
 		
-		if (connection == null || channel == null){
+		if (connection == null || channel == null) {
+			setIsConnectedValue(0);
 			throw new FailedToConnectToRabbitMQException(Messages.getString("FAILED_TO_INIT_CONNECTION_OR_CHANNEL_TO_SERVER")); //$NON-NLS-1$
 		}
 	}
 
-	private ConnectionFactory setupConnectionFactory()
-			throws Exception {
+	private ConnectionFactory setupConnectionFactory() throws Exception {
 		ConnectionFactory connectionFactory = new ConnectionFactory();
-		connectionFactory.setExceptionHandler(new RabbitMQConnectionExceptionHandler(isConnected));
+		connectionFactory.setExceptionHandler(new RabbitMQConnectionExceptionHandler(this));
 		connectionFactory.setAutomaticRecoveryEnabled(autoRecovery);
 				
-		if (autoRecovery){
+		if (autoRecovery) {
 			connectionFactory.setNetworkRecoveryInterval(networkRecoveryInterval);
 		}
 		
@@ -386,11 +386,12 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	/*
 	 * Attempts to make a connection and throws an exception if it fails 
 	 */
-	private Connection setupNewConnection(ConnectionFactory connectionFactory, String URI, Address[] addressArr, SynchronizedConnectionMetric isConnected2) throws IOException, TimeoutException, InterruptedException, OperatorShutdownException {
+	private Connection setupNewConnection(ConnectionFactory connectionFactory, String URI, Address[] addressArr)
+			throws IOException, TimeoutException, InterruptedException, OperatorShutdownException {
 		Connection connection = null;
 		connection = getConnection(connectionFactory, URI, addressArr);
 		if (connectionFactory.isAutomaticRecoveryEnabled()) {
-			((Recoverable) connection).addRecoveryListener(new AutoRecoveryListener(isConnected2));
+			((Recoverable) connection).addRecoveryListener(new AutoRecoveryListener(this));
 		}
 
 		return connection;
@@ -495,7 +496,7 @@ public class RabbitMQBaseOper extends AbstractOperator {
 
 
 	private void closeRabbitConnections() {
-		if (channel != null){
+		if (channel != null) {
 			try {
 				channel.close();
 			} catch (Exception e){
@@ -513,13 +514,14 @@ public class RabbitMQBaseOper extends AbstractOperator {
 				e.printStackTrace();
 				trace.log(LogLevel.ALL, Messages.getString("EXCEPTION_AT_CONNECTION_CLOSE", e.toString())); //$NON-NLS-1$
 			} finally {
+				setIsConnectedValue(0);
 				connection = null;
 			}
 		}
-		
-		isConnected.setValue(0);
 	}
 
+	
+	
 	public void initSchema(StreamSchema ss) throws Exception {
 		Set<MetaType> supportedTypes = new HashSet<MetaType>();
 		supportedTypes.add(MetaType.MAP);
@@ -623,22 +625,65 @@ public class RabbitMQBaseOper extends AbstractOperator {
 	public void setSetNetworkRecoveryInterval(long value) {
 		networkRecoveryInterval  = value; 
 	}
+
 	
-	@CustomMetric(name = "isConnected", kind = Metric.Kind.GAUGE,
-		    description = "Describes whether we are currently connected to the RabbitMQ server.")
-	public void setIsConnectedMetric(Metric isConnected) {
-		this.isConnected = new SynchronizedConnectionMetric(isConnected);
+	
+	@CustomMetric(	name = "isConnected",
+					kind = Metric.Kind.GAUGE,
+					description = "Describes whether we are currently connected to the RabbitMQ server.")
+	public void setIsConnectedNewMetric(Metric isConnected) {
+		this.isConnected = isConnected;
 	}
 	
-	@CustomMetric(name = "reconnectionAttempts", kind = Metric.Kind.COUNTER,
-		    description = "The number of times we have attempted to reconnect since the last successful connection.")
-	public void setReconnectionAttempts(Metric reconnectionAttempts) {
+	
+	
+	public void setIsConnectedValue(long value) {
+		synchronized(isConnected) {
+			isConnected.setValue(value);
+			isConnected.notifyAll();
+			
+			// isConnectedValueOld | isConnectedValue | Meaning
+			//=====================|==================|=================================================
+			//           0         |         0        | Not connected before, not connected yet => reconnectionAttempt				(increment reconnectionAttempts counters)
+			//           0         |         1        | Not connected before, connected yet     => connection established event		(increment reconnectionAttempts counters)
+			//           1         |         0        | Connected before, not connected yet     => connection lost event			(reset last batch counter)
+			//           1         |         1        | Connected before, connected yet     	=> does this even happen? 			(do nothing)
+			if( isConnectedValueOld == 0 ) {
+				reconnectionAttempts.increment();
+				reconnectionAttemptsLatestBatch.increment();
+			}
+			else if( isConnectedValueOld == 1 && value == 0) {
+				reconnectionAttemptsLatestBatch.setValue(0);
+			}
+			else {
+				// isConnectedValueOld == 1 && value == 1
+				// => do nothing
+			}
+			isConnectedValueOld = value;
+		}
+	}
+	
+	
+	
+	@CustomMetric(	name = "reconnectionAttempts",
+					kind = Metric.Kind.COUNTER,
+					description = "The accumulated number of times we have attempted to reconnect since the operator has been started.")
+	public void setReconnectionAttemptsMetric(Metric reconnectionAttempts) {
 		this.reconnectionAttempts = reconnectionAttempts;
 	}
 	
 	
-	public static final String BASE_DESC = 
- "\\n\\n**AppConfig**: " //$NON-NLS-1$
+	
+	@CustomMetric(	name = "reconnectionAttemptsLatestBatch",
+					kind = Metric.Kind.COUNTER,
+					description = "The number of times we have attempted to reconnect to establish the last successful connection.")
+	public void setReconnectionAttemptsLatestBatchMetric(Metric reconnectionAttemptsLatestBatch) {
+		this.reconnectionAttemptsLatestBatch = reconnectionAttemptsLatestBatch;
+	}
+	
+	
+	
+	public static final String BASE_DESC = "\\n\\n**AppConfig**: " //$NON-NLS-1$
 			+ "The hierarchy of credentials goes: credentials from the appConfig beat out parameters (username and password). " //$NON-NLS-1$
 			+ "The valid key-value pairs in the appConfig are <userPropName>=<username> and <passwordPropName>=<password>, where " //$NON-NLS-1$
 			+ "<userPropName> and <passwordPropName> are specified by the corresponding parameters. " //$NON-NLS-1$

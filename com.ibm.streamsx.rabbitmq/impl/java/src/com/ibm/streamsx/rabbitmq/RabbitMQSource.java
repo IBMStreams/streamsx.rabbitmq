@@ -47,8 +47,7 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 
 	private List<String> routingKeys = new ArrayList<String>();
 	
-	private final Logger trace = Logger.getLogger(RabbitMQSource.class
-			.getCanonicalName());
+	private final Logger trace = Logger.getLogger(RabbitMQSource.class.getCanonicalName());
 	
 	private Thread processThread;
 	private String queueName = ""; //$NON-NLS-1$
@@ -183,11 +182,13 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 		channel.basicConsume(queueName, true, consumer);
 		
 		while (!Thread.interrupted()){
-			isConnected.waitForMetricChange();
-			if (isConnected.getValue() != 1
-					&& newCredentialsExist()){
-				trace.log(TraceLevel.WARN,
-						"New properties have been found so the client is restarting."); //$NON-NLS-1$
+			// Wait for a possible change of the 'isConnected' metric
+			synchronized(isConnected) {
+				isConnected.wait();
+			}
+
+			if (isConnected.getValue() != 1 && newCredentialsExist()) {
+				trace.log(TraceLevel.WARN, "New properties have been found so the client is restarting."); //$NON-NLS-1$
 				resetRabbitClient();
 				consumer = getNewDefaultConsumer();
 				channel.basicConsume(queueName, true, consumer);
@@ -207,12 +208,15 @@ public class RabbitMQSource extends RabbitMQBaseOper {
 	private DefaultConsumer getNewDefaultConsumer() {
 		return new DefaultConsumer(channel) {
 			@Override
-			public void handleDelivery(String consumerTag, Envelope envelope,
-					AMQP.BasicProperties properties, byte[] body)
-					throws IOException {
-				if (isConnected.getValue() == 0){
+			public void handleDelivery(	String consumerTag,
+										Envelope envelope,
+										AMQP.BasicProperties properties,
+										byte[] body)
+					throws IOException
+			{
+				if (isConnected.getValue() == 0) {
 					// We know we are connected if we're sending messages
-					isConnected.setValue(1);
+					setIsConnectedValue(1);
 				}
 				StreamingOutput<OutputTuple> out = getOutput(0);
 				OutputTuple tuple = out.newTuple();
