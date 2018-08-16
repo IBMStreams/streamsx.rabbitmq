@@ -11,12 +11,21 @@ import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.TopologyRecoveryException;
 
 public class RabbitMQConnectionExceptionHandler implements ExceptionHandler {
-	private final Logger trace = Logger.getLogger(this.getClass()
-			.getCanonicalName());
-	private SynchronizedConnectionMetric isConnected;
 	
-	public RabbitMQConnectionExceptionHandler(SynchronizedConnectionMetric isConnected2){
-		this.isConnected = isConnected2;
+	private final Logger		trace		= Logger.getLogger(this.getClass().getCanonicalName());
+	
+	// We use the base operator class to update metrics values
+	private RabbitMQBaseOper	rabbitMQOp	= null;
+	
+
+	
+	/**
+	 * Initializes the exception handler with the operator 
+	 * to handle the exceptions for.
+	 * @param op	The RabbitMQ operator (Source or Sink) to handle exceptions for.
+	 */
+	public RabbitMQConnectionExceptionHandler(RabbitMQBaseOper op) {
+		this.rabbitMQOp = op;
 	}
 	
 	@Override
@@ -41,17 +50,11 @@ public class RabbitMQConnectionExceptionHandler implements ExceptionHandler {
 	public void handleConnectionRecoveryException(Connection arg0, Throwable arg1) {
 		arg1.printStackTrace();
 		trace.log(TraceLevel.ERROR, Messages.getString("SEE_STDOUT_FOR_FULL_STACK_TRACE", arg1.getMessage())); //$NON-NLS-1$
-		isConnected.setValue(0);
+		rabbitMQOp.setIsConnectedValue(0);
 	}
 
 	@Override
 	public void handleConsumerException(Channel arg0, Throwable arg1, Consumer arg2, String arg3, String arg4) {
-		arg1.printStackTrace();
-		trace.log(TraceLevel.ERROR, Messages.getString("SEE_STDOUT_FOR_FULL_STACK_TRACE", arg1.getMessage())); //$NON-NLS-1$
-	}
-
-	@Override
-	public void handleFlowListenerException(Channel arg0, Throwable arg1) {
 		arg1.printStackTrace();
 		trace.log(TraceLevel.ERROR, Messages.getString("SEE_STDOUT_FOR_FULL_STACK_TRACE", arg1.getMessage())); //$NON-NLS-1$
 	}
@@ -72,7 +75,7 @@ public class RabbitMQConnectionExceptionHandler implements ExceptionHandler {
 	public void handleUnexpectedConnectionDriverException(Connection arg0, Throwable arg1) {
 		arg1.printStackTrace();
 		trace.log(TraceLevel.ERROR, Messages.getString("SEE_STDOUT_FOR_FULL_STACK_TRACE", arg1.getMessage())); //$NON-NLS-1$
-		isConnected.setValue(0);
+		rabbitMQOp.setIsConnectedValue(0);
 	}
 
 }
