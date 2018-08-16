@@ -31,4 +31,9 @@ public class AutoRecoveryListener implements RecoveryListener {
 	}
 
 
+	@Override
+	public void handleRecoveryStarted(Recoverable arg0) {
+		trace.log(TraceLevel.INFO, "Starting to recover RabbitMQ connection."); //$NON-NLS-1$
+	}
+
 }

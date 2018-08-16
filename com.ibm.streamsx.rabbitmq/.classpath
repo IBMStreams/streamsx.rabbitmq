@@ -3,6 +3,6 @@
 	<classpathentry kind="src" output="impl/java/bin" path="impl/java/src"/>
 	<classpathentry exported="true" kind="con" path="com.ibm.streams.java/com.ibm.streams.operator"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="opt/downloaded/amqp-client-3.6.2.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/amqp-client-5.3.0.jar"/>
 	<classpathentry kind="output" path="impl/java/bin"/>
 </classpath>
