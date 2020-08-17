@@ -22,12 +22,12 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.rabbitmq Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.rabbitmq.html">com.ibm.streamsx.rabbitmq 1.1.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.rabbitmq.html">com.ibm.streamsx.rabbitmq</a> &gt; RabbitMQSource</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.rabbitmq Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.rabbitmq.html">com.ibm.streamsx.rabbitmq 1.2.2</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.rabbitmq.html">com.ibm.streamsx.rabbitmq</a> &gt; RabbitMQSource</p>
 
 </div>
 
 <div class="section splprimop">
-  <embed class="image" src="../../image/tk$com.ibm.streamsx.rabbitmq/op$com.ibm.streamsx.rabbitmq$RabbitMQSource.svg" width="672" height="112"/>
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.rabbitmq/op$com.ibm.streamsx.rabbitmq$RabbitMQSource.svg" width="872" height="112"/>
 </div>
 
 <div class="section">
@@ -49,7 +49,7 @@
  
   <dt class="dt dlterm">Ports</dt>
 
-  <dd class="dd">This operator has 0 input port and 1 output port.</dd>
+  <dd class="dd">This operator has 0 input ports and 1 output port.</dd>
 
  
  
@@ -72,7 +72,7 @@
  
   <dt class="dt dlterm">Metrics</dt>
 
-  <dd class="dd">This operator reports 2 metrics.</dd>
+  <dd class="dd">This operator reports 3 metrics.</dd>
 
  
 </dl>
@@ -1009,7 +1009,20 @@ This operator supports 27 parameters.
 
     <dd class="dd">
 
-<p class="p">The number of times we have attempted to reconnect since the last successful connection.
+<p class="p">The accumulated number of times we have attempted to reconnect since the operator has been started.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">reconnectionAttemptsLatestBatch</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">The number of times we have attempted to reconnect to establish the last successful connection.
 </p>
 
      <p class="p"/>
