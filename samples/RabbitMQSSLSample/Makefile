@@ -9,6 +9,13 @@ ifeq ($(STREAMS_STUDIO_BUILDING), 1)
   SPLC = $(STREAMS_STUDIO_SC_PATH)
   SPL_PATH = $(STREAMS_STUDIO_SPL_PATH)
   OUTPUT_DIR = $(STREAMS_STUDIO_OUTPUT_DIRECTORY)
+else ifdef STREAMS_BUILDSERVICE
+    $(info Building using buildservice)
+    ifeq ($(STREAMS_INSTALL),)
+        $(error error: environment variable STREAMS_INSTALL has to be set)
+    endif
+    SPLC = $(STREAMS_INSTALL)/bin/sc
+    SPL_PATH = ../toolkits:$(STREAMS_INSTALL)/toolkits
 else
   # Building outside of Streams Studio...
   ifeq ($(STREAMS_INSTALL),)
@@ -19,8 +26,10 @@ else
     ifneq ($(realpath ../../com.ibm.streamsx.rabbitmq),)
       STREAMSX_RABBITMQ_TOOLKIT = ../../com.ibm.streamsx.rabbitmq
     endif
-    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq),)
-      STREAMSX_RABBITMQ_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq
+    ifeq ($(STREAMSX_RABBITMQ_TOOLKIT),)
+      ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq),)
+        STREAMSX_RABBITMQ_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.rabbitmq
+      endif
     endif
   endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
