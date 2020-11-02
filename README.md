@@ -8,7 +8,10 @@ Check the releases of this project on the following site:
 Check out our SPLDOC here: 
 * https://ibmstreams.github.io/streamsx.rabbitmq/doc/spldoc/html/index.html
 
-To get started with working with this toolkit:
+## Changes
+[CHANGELOG.md](com.ibm.streamsx.rabbitmq/CHANGELOG.md)
+
+## To get started with working with this toolkit
 * [https://ibmstreams.github.io/streamsx.rabbitmq](https://ibmstreams.github.io/streamsx.rabbitmq)
 * [https://github.com/IBMStreams/streamsx.rabbitmq/wiki](https://github.com/IBMStreams/streamsx.rabbitmq/wiki)
 * [The messages and the NLS for toolkits](https://github.com/IBMStreams/administration/wiki/Messages-and-National-Language-Support-for-toolkits)
@@ -17,7 +20,6 @@ To get started with working with this toolkit:
 To learn more about Streams:
 
 * [IBM Streams on Github](http://ibmstreams.github.io)
-* [Introduction to Streams Quick Start Edition](http://ibmstreams.github.io/streamsx.documentation/docs/4.2/qse-intro/)
-* [Streams Getting Started Guide](http://ibmstreams.github.io/streamsx.documentation/docs/4.2/qse-getting-started/)
+
 
 
